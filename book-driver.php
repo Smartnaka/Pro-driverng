@@ -28,12 +28,48 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 // Fetch available drivers with error handling
+$where_conditions = [];
+$params = [];
+$types = "";
+
+// Search filters
+if (isset($_GET['location']) && !empty($_GET['location'])) {
+    $where_conditions[] = "address LIKE ?";
+    $params[] = "%" . $_GET['location'] . "%";
+    $types .= "s";
+}
+
+if (isset($_GET['vehicle_type']) && !empty($_GET['vehicle_type'])) {
+    $where_conditions[] = "drive LIKE ?";
+    $params[] = "%" . $_GET['vehicle_type'] . "%";
+    $types .= "s";
+}
+
+if (isset($_GET['experience']) && !empty($_GET['experience'])) {
+    $where_conditions[] = "experience >= ?";
+    $params[] = $_GET['experience'];
+    $types .= "i";
+}
+
+// Build the query
 $drivers_sql = "SELECT id, first_name, last_name, drive, speak, skills, profile_picture, address, experience 
                 FROM drivers";
-$drivers_result = $conn->query($drivers_sql);
-if ($drivers_result === false) {
-    die("Error fetching drivers: " . $conn->error);
+
+if (!empty($where_conditions)) {
+    $drivers_sql .= " WHERE " . implode(" AND ", $where_conditions);
 }
+
+// Add sorting
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'experience';
+$order = isset($_GET['order']) ? $_GET['order'] : 'DESC';
+$drivers_sql .= " ORDER BY $sort $order";
+
+$stmt = $conn->prepare($drivers_sql);
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+$stmt->execute();
+$drivers_result = $stmt->get_result();
 
 // Debug information
 if (isset($_GET['debug'])) {
@@ -78,42 +114,59 @@ if (isset($_GET['debug'])) {
 
         .content {
             margin-left: 280px;
-            padding: 2rem;
+            padding: 1.5rem;
             min-height: 100vh;
             transition: margin-left 0.3s ease;
         }
 
         .page-header {
-            background: linear-gradient(135deg, #0d6efd, #0099ff);
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
             color: white;
             border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
+        }
+
+        .page-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .page-header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin: 0;
         }
 
         .booking-section {
             background: white;
             border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
+            padding: 1.25rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .section-title {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 600;
             color: #1e293b;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
+        .section-title i {
+            color: #2563eb;
+        }
+
         .driver-card {
             border: 1px solid #e5e7eb;
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             margin-bottom: 1rem;
             transition: all 0.3s ease;
             cursor: pointer;
@@ -130,14 +183,14 @@ if (isset($_GET['debug'])) {
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #0d6efd, #0099ff);
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
 
         .driver-card:hover {
-            border-color: #0d6efd;
-            box-shadow: 0 8px 24px rgba(13, 110, 253, 0.15);
+            border-color: #2563eb;
+            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12);
             transform: translateY(-4px);
         }
 
@@ -145,36 +198,24 @@ if (isset($_GET['debug'])) {
             opacity: 1;
         }
 
-        .driver-card.selected {
-            border-color: #0d6efd;
-            background-color: #f0f7ff;
-        }
-
-        .driver-card.selected::before {
-            opacity: 1;
-        }
-
         .driver-avatar {
-            width: 100px;
-            height: 120px;
-            border-radius: 8px;
+            width: 90px;
+            height: 110px;
+            border-radius: 12px;
             object-fit: cover;
-            border: 3px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-            transition: transform 0.3s ease;
-            background-color: #f8f9fa;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
         }
 
         .driver-card:hover .driver-avatar {
-            transform: scale(1.02);
+            transform: scale(1.03);
         }
 
         .driver-profile {
             display: flex;
             align-items: flex-start;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-            position: relative;
+            gap: 1rem;
+            margin-bottom: 1rem;
         }
 
         .driver-info {
@@ -185,14 +226,14 @@ if (isset($_GET['debug'])) {
         .driver-info h5 {
             margin: 0 0 0.5rem 0;
             color: #1e293b;
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 600;
         }
 
         .driver-meta {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
             color: #64748b;
             font-size: 0.9rem;
         }
@@ -200,125 +241,107 @@ if (isset($_GET['debug'])) {
         .driver-meta-item {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.35rem;
+            background: #f8fafc;
+            padding: 0.35rem 0.5rem;
+            border-radius: 8px;
+        }
+
+        .driver-meta-item i {
+            color: #2563eb;
         }
 
         .driver-details {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
             border-top: 1px solid #e5e7eb;
         }
 
         .detail-item {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
             color: #64748b;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             padding: 0.5rem;
             border-radius: 8px;
-            transition: background-color 0.2s ease;
+            background: #f8fafc;
         }
 
         .detail-item:hover {
-            background-color: #f8f9fa;
+            background: #f1f5f9;
+            transform: translateY(-2px);
         }
 
         .detail-item i {
-            font-size: 1.1rem;
-            color: #0d6efd;
+            font-size: 1.2rem;
+            color: #2563eb;
         }
 
         .driver-badge {
             display: inline-flex;
             align-items: center;
             padding: 0.35rem 0.75rem;
-            border-radius: 999px;
+            border-radius: 8px;
             font-size: 0.85rem;
             font-weight: 500;
-            background-color: #e9f2ff;
-            color: #0d6efd;
+            background-color: #eff6ff;
+            color: #2563eb;
             margin-right: 0.5rem;
         }
 
-        .driver-badge i {
-            margin-right: 0.35rem;
-            font-size: 0.9rem;
+        .driver-badge:hover {
+            background-color: #dbeafe;
+            transform: translateY(-2px);
         }
 
-        .driver-status {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            padding: 0.35rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            background-color: #dcfce7;
-            color: #16a34a;
+        .driver-badge i {
+            margin-right: 0.5rem;
+            font-size: 1rem;
         }
 
         .form-floating > label {
-            color: #64748b;
+            font-size: 0.9rem;
         }
 
-        .form-control:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.9rem;
         }
 
-        .mobile-nav {
-            display: none;
-            padding: 1rem;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            position: sticky;
-            top: 0;
-            z-index: 1020;
-        }
-
-        .hamburger-btn {
-            border: none;
-            background: none;
-            padding: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #1e293b;
-            font-size: 1.25rem;
+        .form-control:focus, .form-select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
 
         .select-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, #0d6efd, #0099ff);
-            color: white;
-            border: none;
+            padding: 0.75rem 1rem;
             border-radius: 8px;
-            font-weight: 500;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            width: 100%;
+            font-size: 0.95rem;
             margin-top: 1rem;
         }
 
         .select-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-        }
-
-        .select-btn.selected {
-            background: #198754;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
         }
 
         .select-btn i {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+        }
+
+        .btn-primary {
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
         }
 
         @media (max-width: 768px) {
@@ -327,70 +350,23 @@ if (isset($_GET['debug'])) {
                 padding: 1rem;
             }
 
-            .mobile-nav {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
+            .page-header {
+                padding: 1.25rem;
             }
 
             .booking-section {
                 padding: 1rem;
             }
 
-            .driver-details {
-                grid-template-columns: 1fr;
+            .driver-profile {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
             }
-        }
 
-        .modal-content {
-            border-radius: 16px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .modal-header {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 1.5rem;
-            background: linear-gradient(135deg, #0d6efd, #0099ff);
-            color: white;
-            border-radius: 16px 16px 0 0;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #e5e7eb;
-            padding: 1.5rem;
-        }
-
-        .selected-driver-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-        }
-
-        .selected-driver-avatar {
-            width: 60px;
-            height: 72px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-
-        .selected-driver-details h5 {
-            margin: 0;
-            color: #1e293b;
-        }
-
-        .selected-driver-details p {
-            margin: 0;
-            color: #64748b;
-            font-size: 0.9rem;
+            .driver-meta {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -414,86 +390,130 @@ if (isset($_GET['debug'])) {
     <!-- Main Content -->
     <div class="content">
         <div class="page-header">
-            <h3 class="mb-0">Book a Driver</h3>
-            <p class="mb-0 opacity-75">Find and book professional drivers for your journey</p>
+            <h3 class="mb-0">Find a Driver</h3>
+            <p class="mb-0 opacity-75">Search and book professional drivers for your journey</p>
         </div>
 
-        <form method="POST" id="bookingForm">
-            <!-- Available Drivers Section -->
-            <div class="booking-section">
-                <h4 class="section-title">
+        <!-- Search Filters -->
+        <div class="booking-section mb-4">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="location" name="location" 
+                               placeholder="Enter location" value="<?= htmlspecialchars($_GET['location'] ?? '') ?>">
+                        <label for="location"><i class="bi bi-geo-alt"></i> Location</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <select class="form-select" id="vehicle_type" name="vehicle_type">
+                            <option value="">All Vehicles</option>
+                            <option value="Car" <?= (isset($_GET['vehicle_type']) && $_GET['vehicle_type'] == 'Car') ? 'selected' : '' ?>>Car</option>
+                            <option value="Van" <?= (isset($_GET['vehicle_type']) && $_GET['vehicle_type'] == 'Van') ? 'selected' : '' ?>>Van</option>
+                            <option value="Truck" <?= (isset($_GET['vehicle_type']) && $_GET['vehicle_type'] == 'Truck') ? 'selected' : '' ?>>Truck</option>
+                        </select>
+                        <label for="vehicle_type"><i class="bi bi-car-front"></i> Vehicle Type</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <select class="form-select" id="experience" name="experience">
+                            <option value="">Any Experience</option>
+                            <option value="1" <?= (isset($_GET['experience']) && $_GET['experience'] == '1') ? 'selected' : '' ?>>1+ years</option>
+                            <option value="3" <?= (isset($_GET['experience']) && $_GET['experience'] == '3') ? 'selected' : '' ?>>3+ years</option>
+                            <option value="5" <?= (isset($_GET['experience']) && $_GET['experience'] == '5') ? 'selected' : '' ?>>5+ years</option>
+                        </select>
+                        <label for="experience"><i class="bi bi-clock-history"></i> Experience</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 h-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sort Options -->
+        <div class="booking-section mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="section-title mb-0">
                     <i class="bi bi-person-check"></i>
                     Available Drivers
                 </h4>
-                
-                <?php if ($drivers_result && $drivers_result->num_rows > 0): ?>
-                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                        <?php while($driver = $drivers_result->fetch_assoc()): ?>
-                            <div class="col">
-                                <div class="driver-card">
-                                    <div class="driver-status">
-                                        <i class="bi bi-circle-fill me-1"></i>Available
-                                    </div>
-                                    <div class="driver-profile">
-                                        <img src="<?= !empty($driver['profile_picture']) ? htmlspecialchars($driver['profile_picture']) : 'images/default-profile.png' ?>" 
-                                             class="driver-avatar" alt="Driver Photo">
-                                        <div class="driver-info">
-                                            <h5><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></h5>
-                                            <div class="driver-meta">
-                                                <span class="driver-meta-item">
-                                                    <i class="bi bi-clock-history"></i>
-                                                    Fast Response
-                                                </span>
-                                                <span class="driver-meta-item">
-                                                    <i class="bi bi-shield-check"></i>
-                                                    Verified
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="driver-details">
-                                        <div class="detail-item">
-                                            <i class="bi bi-car-front-fill"></i>
-                                            <span><?= htmlspecialchars($driver['drive'] ?? 'All Vehicles') ?></span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <i class="bi bi-geo-alt-fill"></i>
-                                            <span><?= htmlspecialchars($driver['address'] ?? 'Lagos, Nigeria') ?></span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <i class="bi bi-clock-history"></i>
-                                            <span><?= htmlspecialchars($driver['experience'] ?? '0') ?> yrs experience</span>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3">
-                                        <span class="driver-badge">
-                                            <i class="bi bi-award-fill"></i>
-                                            Experienced Driver
-                                        </span>
-                                        <span class="driver-badge">
-                                            <i class="bi bi-person-check-fill"></i>
-                                            Licensed
-                                        </span>
-                                    </div>
-                                    <form action="booking.php" method="GET" style="width: 100%;">
-                                        <input type="hidden" name="driver_id" value="<?= htmlspecialchars($driver['id']) ?>">
-                                        <button type="submit" class="select-btn">
-                                            <i class="bi bi-check-circle"></i>
-                                            <span class="btn-text">Select Driver</span>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        <?php endwhile; ?>
-                    </div>
-                <?php else: ?>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        No drivers are currently available. Please try again later.
-                    </div>
-                <?php endif; ?>
+                <div class="d-flex gap-2">
+                    <select class="form-select" onchange="updateSort(this.value)">
+                        <option value="rating" <?= $sort == 'rating' ? 'selected' : '' ?>>Sort by Rating</option>
+                        <option value="experience" <?= $sort == 'experience' ? 'selected' : '' ?>>Sort by Experience</option>
+                        <option value="total_trips" <?= $sort == 'total_trips' ? 'selected' : '' ?>>Sort by Trips</option>
+                    </select>
+                </div>
             </div>
-        </form>
+        </div>
+
+        <!-- Drivers List -->
+        <div class="booking-section">
+            <?php if ($drivers_result && $drivers_result->num_rows > 0): ?>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    <?php while($driver = $drivers_result->fetch_assoc()): ?>
+                        <div class="col">
+                            <div class="driver-card">
+                                <div class="driver-profile">
+                                    <img src="<?= !empty($driver['profile_picture']) ? htmlspecialchars($driver['profile_picture']) : 'images/default-profile.png' ?>" 
+                                         class="driver-avatar" alt="Driver Photo">
+                                    <div class="driver-info">
+                                        <h5><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></h5>
+                                        <div class="driver-meta">
+                                            <span class="driver-meta-item">
+                                                <i class="bi bi-clock-history"></i>
+                                                <?= htmlspecialchars($driver['experience'] ?? '0') ?> years experience
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="driver-details">
+                                    <div class="detail-item">
+                                        <i class="bi bi-car-front-fill"></i>
+                                        <span><?= htmlspecialchars($driver['drive'] ?? 'All Vehicles') ?></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                        <span><?= htmlspecialchars($driver['address'] ?? 'Lagos, Nigeria') ?></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="bi bi-translate"></i>
+                                        <span><?= htmlspecialchars($driver['speak'] ?? 'English') ?></span>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <span class="driver-badge">
+                                        <i class="bi bi-award-fill"></i>
+                                        <?= $driver['experience'] >= 5 ? 'Expert Driver' : 'Experienced Driver' ?>
+                                    </span>
+                                    <span class="driver-badge">
+                                        <i class="bi bi-person-check-fill"></i>
+                                        Licensed
+                                    </span>
+                                </div>
+                                <form action="payment.php" method="GET" style="width: 100%;">
+                                    <input type="hidden" name="driver_id" value="<?= htmlspecialchars($driver['id']) ?>">
+                                    <input type="hidden" name="amount" value="5000"> <!-- Replace with actual amount calculation -->
+                                    <button type="submit" class="select-btn">
+                                        <i class="bi bi-check-circle"></i>
+                                        <span class="btn-text">Book & Pay Now</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+            <?php else: ?>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No drivers match your search criteria. Please try different filters.
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 
     <script src="assets/js/bootstrap.bundle.min.js"></script>
@@ -512,6 +532,13 @@ if (isset($_GET['debug'])) {
                 overlay.classList.toggle('active');
                 document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
             }
+        }
+
+        function updateSort(value) {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('sort', value);
+            urlParams.set('order', 'DESC');
+            window.location.search = urlParams.toString();
         }
     </script>
 </body>

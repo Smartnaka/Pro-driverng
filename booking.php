@@ -60,42 +60,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_driver'])) {
     $trip_purpose = $_POST['trip_purpose'];
     $additional_notes = $_POST['additional_notes'];
 
-    // Insert booking
-    $insert_sql = "INSERT INTO bookings (user_id, driver_id, pickup_location, dropoff_location, 
-                   pickup_date, pickup_time, duration_days, vehicle_type, trip_purpose, additional_notes, status) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
-    $stmt = $conn->prepare($insert_sql);
-    if ($stmt) {
-        $stmt->bind_param("iissssisss", 
-            $user_id, 
-            $driver_id, 
-            $pickup_location, 
-            $dropoff_location,
-            $pickup_date, 
-            $pickup_time, 
-            $duration_days,
-            $vehicle_type, 
-            $trip_purpose, 
-            $additional_notes
-        );
-        
-        if ($stmt->execute()) {
-            // Create notification for driver
-            $notification_sql = "INSERT INTO driver_notifications (driver_id, title, message, type) 
-                               VALUES (?, 'New Booking Request', 'You have a new booking request. Please check your dashboard.', 'info')";
-            $notify_stmt = $conn->prepare($notification_sql);
-            if ($notify_stmt) {
-                $notify_stmt->bind_param("i", $driver_id);
-                $notify_stmt->execute();
-            }
-            
-            $_SESSION['success_message'] = "Booking request sent successfully! We'll notify you when the driver responds.";
-            header("Location: my-bookings.php");
-            exit();
-        } else {
-            $error_message = "Error creating booking. Please try again.";
-        }
-    }
+    // Calculate amount based on duration and vehicle type
+    $base_rate = 5000; // Base rate per day
+    $amount = $base_rate * $duration_days;
+
+    // Store booking details in session for payment
+    $_SESSION['pending_booking'] = [
+        'driver_id' => $driver_id,
+        'pickup_location' => $pickup_location,
+        'dropoff_location' => $dropoff_location,
+        'pickup_date' => $pickup_date,
+        'pickup_time' => $pickup_time,
+        'duration_days' => $duration_days,
+        'vehicle_type' => $vehicle_type,
+        'trip_purpose' => $trip_purpose,
+        'additional_notes' => $additional_notes,
+        'amount' => $amount
+    ];
+
+    // Redirect to payment page
+    header("Location: payment.php?amount=" . $amount);
+    exit();
 }
 ?>
 <!DOCTYPE html>
