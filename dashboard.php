@@ -8,164 +8,324 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$customer_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
 
-// Fetch customer details
+// Fetch user details
 $sql = "SELECT * FROM customers WHERE id = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $customer_id);
+if ($stmt === false) {
+    die("Error preparing user query: " . $conn->error);
+}
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-// Determine profile picture path
+// Check if notifications table exists
+$table_check = $conn->query("SHOW TABLES LIKE 'customer_notifications'");
+$notifications_table_exists = $table_check->num_rows > 0;
+
+// Create notifications table if it doesn't exist
+if (!$notifications_table_exists) {
+    $create_table_sql = "CREATE TABLE customer_notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        type ENUM('info', 'warning', 'success', 'error') NOT NULL DEFAULT 'info',
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE CASCADE
+    )";
+    $conn->query($create_table_sql);
+}
+
+// Fetch unread notifications count
+$unread_notifications = 0;
+if ($notifications_table_exists) {
+    $notifications_sql = "SELECT COUNT(*) as count FROM customer_notifications WHERE user_id = ? AND is_read = FALSE";
+    $stmt = $conn->prepare($notifications_sql);
+    if ($stmt) {
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $unread_notifications = $stmt->get_result()->fetch_assoc()['count'];
+    }
+}
+
+// Set default profile picture path
 $picPath = !empty($user['profile_picture']) ? $user['profile_picture'] : "images/default-profile.png";
 $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Customer Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Pro-Drivers</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
 
-  
-  <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+        .content {
+            margin-left: 280px;
+            padding: 2rem;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
 
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f8f9fa;
-    }
+        .welcome-header {
+            background: linear-gradient(135deg, #0d6efd, #0099ff);
+            color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+        }
 
-    .sidebar {
-      background-color: #e9f2fb;
-      color: #343a40;
-      padding: 1.5rem 1rem;
-      height: 100vh;
-      border-right: 1px solid #dee2e6;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 250px;
-      z-index: 1040;
-    }
+        .welcome-header h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 0;
+        }
 
-    .sidebar a {
-      color: #343a40;
-      text-decoration: none;
-      display: block;
-      padding: 0.75rem 1rem;
-      border-radius: 0.375rem;
-      margin-bottom: 0.5rem;
-      transition: background 0.3s, color 0.3s;
-    }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
 
-    .sidebar a:hover,
-    .sidebar a:focus {
-      background-color: #cfe2ff;
-      color: #0d6efd;
-    }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
 
-    .profile-pic {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 3px solid #0d6efd;
-      margin-bottom: 0.75rem;
-    }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
 
-    .card {
-      border: none;
-      border-radius: 0.75rem;
-    }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
 
-    .card h5 {
-      font-weight: 600;
-    }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: #1e293b;
+        }
 
-    .content {
-      margin-left: 250px;
-    }
+        .stat-label {
+            color: #64748b;
+            margin: 0;
+            font-size: 0.875rem;
+        }
 
-    @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-      }
+        .recent-activity {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
 
-      .sidebar.active {
-        transform: translateX(0);
-      }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
 
-      .content {
-        margin-left: 0;
-      }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
 
-      .overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1030;
-      }
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.25rem;
+        }
 
-      .overlay.active {
-        display: block;
-      }
-    }
-  </style>
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1030;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                margin-left: 0;
+            }
+            .welcome-header {
+                padding: 1.5rem;
+            }
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .mobile-nav {
+            display: none;
+            padding: 1rem;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+        }
+
+        .hamburger-btn {
+            border: none;
+            background: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1e293b;
+            font-size: 1.25rem;
+        }
+
+        .hamburger-btn:hover {
+            color: #0d6efd;
+        }
+    </style>
 </head>
 <body>
+    <!-- Include Sidebar -->
+    <?php include 'partials/sidebar.php'; ?>
 
-<!-- Sidebar -->
-<?php include 'partials/sidebar.php'; ?>
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <button class="hamburger-btn" onclick="toggleSidebar()">
+            <i class="bi bi-list"></i>
+            <span class="d-none d-sm-inline">Menu</span>
+        </button>
+        <span class="fw-bold">Dashboard</span>
+        <div style="width: 2rem;"><!-- Empty div for flex spacing --></div>
+    </nav>
 
-<!-- Overlay for mobile -->
-<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-<!-- Mobile Navbar -->
-<nav class="navbar navbar-light bg-white d-md-none border-bottom">
-  <div class="container-fluid">
-    <button class="btn btn-outline-primary" onclick="toggleSidebar()">☰ Menu</button>
-    <span class="navbar-brand mb-0">Dashboard</span>
-  </div>
-</nav>
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Welcome Header -->
+        <div class="welcome-header">
+            <h3>Welcome back, <?php echo htmlspecialchars($user['first_name']); ?>! 👋</h3>
+            <p class="mb-0">Here's what's happening with your account today.</p>
+        </div>
 
-<!-- Main Content -->
-<div class="content p-4">
-  <h3 class="fw-bold mb-4">Welcome back, <?= htmlspecialchars($user['first_name']) ?>!</h3>
+        <!-- Stats Grid -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #e0f2fe; color: #0284c7;">
+                    <i class="fas fa-car"></i>
+                </div>
+                <h4 class="stat-value">0</h4>
+                <p class="stat-label">Active Bookings</p>
+            </div>
 
-  <div class="row g-4">
-    <div class="col-md-6">
-      <div class="card shadow-sm p-4">
-        <h5>📄 Account Summary</h5>
-        <p><strong>Phone:</strong> <?= htmlspecialchars($user['phone']) ?></p>
-        <p><strong>State:</strong> <?= htmlspecialchars($user['state'] ?? 'Not Set') ?></p>
-        <p><strong>Address:</strong> <?= htmlspecialchars($user['address'] ?? 'Not Set') ?></p>
-      </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #dcfce7; color: #16a34a;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h4 class="stat-value">0</h4>
+                <p class="stat-label">Completed Trips</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #fef3c7; color: #d97706;">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h4 class="stat-value">0</h4>
+                <p class="stat-label">Reviews Given</p>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity">
+            <h5 class="mb-4">Recent Activity</h5>
+            <div class="activity-item">
+                <div class="activity-icon bg-light text-primary">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <p class="mb-0">Welcome to Pro-Drivers!</p>
+                    <small class="text-muted">Get started by booking your first driver</small>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-6">
-      <div class="card shadow-sm p-4 bg-light">
-        <h5>💬 Support</h5>
-        <p>Need help? <a href="support.php" class="text-decoration-none text-primary">Contact Support</a></p>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('active');
-    document.getElementById('overlay').classList.toggle('active');
-  }
-</script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+            document.body.style.overflow = document.getElementById('sidebar').classList.contains('active') ? 'hidden' : '';
+        }
 
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const hamburgerBtn = document.querySelector('.hamburger-btn');
+            
+            if (window.innerWidth <= 768 && 
+                sidebar.classList.contains('active') && 
+                !sidebar.contains(event.target) && 
+                !hamburgerBtn.contains(event.target)) {
+                toggleSidebar();
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('overlay').classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    </script>
 </body>
 </html>

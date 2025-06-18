@@ -4,61 +4,247 @@
   $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>User Sidebar</title>
     
-   <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-   <style>
-    .sidebar a.active {
-  background-color: #cfe2ff;
-  color: #0d6efd !important;
-  font-weight: 600;
-}
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .sidebar {
+            background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+            color: #1e293b;
+            padding: 1.5rem;
+            height: 100vh;
+            border-right: 1px solid rgba(0,0,0,0.08);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            z-index: 1040;
+            overflow-y: auto;
+            transition: transform 0.3s ease-in-out;
+        }
 
-   </style>
+        .sidebar-brand {
+            padding: 0.5rem 1rem;
+            margin-bottom: 2rem;
+        }
 
+        .profile-section {
+            background: linear-gradient(135deg, #e9f2fb 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .profile-pic {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            box-shadow: 0 2px 12px rgba(13, 110, 253, 0.15);
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .profile-pic:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-email {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #64748b;
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item {
+            color: #1e293b;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.375rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-item i {
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+            color: #64748b;
+            transition: color 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: #f1f5f9;
+            color: #0d6efd;
+        }
+
+        .nav-item:hover i {
+            color: #0d6efd;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
+            color: #ffffff;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+        }
+
+        .nav-item.active i {
+            color: #ffffff;
+        }
+
+        .nav-badge {
+            position: absolute;
+            right: 1rem;
+            background: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            font-weight: 500;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0.04) 100%);
+            margin: 1rem 0;
+        }
+
+        .nav-item.danger {
+            color: #dc3545;
+        }
+
+        .nav-item.danger i {
+            color: #dc3545;
+        }
+
+        .nav-item.danger:hover {
+            background-color: #dc354510;
+            color: #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+        }
+    </style>
 </head>
 <body>
     
 <div class="sidebar" id="sidebar">
-  <div class="text-center mb-4">
-    <?php if (!empty($user['profile_picture'])): ?>
-      <img src="<?= htmlspecialchars($user['profile_picture']) ?>" class="profile-pic" alt="Profile Picture">
-    <?php else: ?>
-      <img src="images/default-profile.png" class="profile-pic" alt="Default Profile Picture">
-    <?php endif; ?>
-    <h6 class="mt-2 mb-0"><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></h6>
-    <small><?= htmlspecialchars($user['email']) ?></small>
-  </div>
+    <div class="profile-section">
+        <?php 
+        // Initialize variables
+        $profile_picture = '';
+        $first_name = '';
+        $last_name = '';
+        $email = '';
+        $unread_notifications = 0;
+        $current_page = basename($_SERVER['PHP_SELF']);
 
-  <a href="dashboard.php" class="<?= $current_page === 'dashboard.php' ? 'active' : '' ?>">
-    <i class="bi bi-house-door-fill me-2 text-primary"></i>Dashboard
-  </a>
-  <a href="hire-driver.php" class="<?= $current_page === 'hire-driver.php' ? 'active' : '' ?>">
-    <i class="bi bi-person-lines-fill me-2 text-primary"></i>Hire a Driver
-  </a>
+        // Check if user variable exists and is an array
+        if (isset($user) && is_array($user)) {
+            $profile_picture = $user['profile_picture'] ?? '';
+            $first_name = $user['first_name'] ?? '';
+            $last_name = $user['last_name'] ?? '';
+            $email = $user['email'] ?? '';
+        }
+        ?>
+        
+        <?php if (!empty($profile_picture)): ?>
+            <img src="<?= htmlspecialchars($profile_picture) ?>" class="profile-pic" alt="Profile Picture">
+        <?php else: ?>
+            <img src="images/default-profile.png" class="profile-pic" alt="Default Profile Picture">
+        <?php endif; ?>
+        
+        <h6 class="profile-name">
+            <?= htmlspecialchars($first_name . ' ' . $last_name) ?>
+        </h6>
+        <p class="profile-email"><?= htmlspecialchars($email) ?></p>
+    </div>
 
-  <a href="hire-vehicle.php" class="<?= $current_page === 'hire-vehicle.php' ? 'active' : '' ?>">
-    <i class="bi bi-truck-front-fill me-2 text-primary"></i>Rent a Vehicle
-  </a>
+    <div class="nav-section">
+        <div class="nav-section-title">Main Menu</div>
+        <a href="dashboard.php" class="nav-item <?= $current_page === 'dashboard.php' ? 'active' : '' ?>">
+            <i class="bi bi-house-door"></i>Dashboard
+        </a>
+        
+        <a href="book-driver.php" class="nav-item <?= $current_page === 'book-driver.php' ? 'active' : '' ?>">
+            <i class="bi bi-car-front"></i>Book a Driver
+        </a>
+        
+        <a href="my-bookings.php" class="nav-item <?= $current_page === 'my-bookings.php' ? 'active' : '' ?>">
+            <i class="bi bi-calendar-check"></i>My Bookings
+        </a>
+        
+        <a href="notifications.php" class="nav-item <?= $current_page === 'notifications.php' ? 'active' : '' ?>">
+            <i class="bi bi-bell"></i>Notifications
+            <?php if ($unread_notifications > 0): ?>
+                <span class="nav-badge"><?= $unread_notifications ?></span>
+            <?php endif; ?>
+        </a>
+    </div>
 
-  <a href="edit_profile.php" class="<?= $current_page === 'edit_profile.php' ? 'active' : '' ?>">
-    <i class="bi bi-pencil-square me-2 text-primary"></i>Edit Profile
-  </a>
-  <a href="logout.php" class="<?= $current_page === 'logout.php' ? 'active' : '' ?>">
-    <i class="bi bi-box-arrow-right me-2 text-primary"></i>Logout
-  </a>
+    <div class="nav-section">
+        <div class="nav-section-title">Account & Support</div>
+        <a href="profile.php" class="nav-item <?= $current_page === 'profile.php' ? 'active' : '' ?>">
+            <i class="bi bi-person"></i>My Profile
+        </a>
+        
+        <a href="settings.php" class="nav-item <?= $current_page === 'settings.php' ? 'active' : '' ?>">
+            <i class="bi bi-gear"></i>Settings
+        </a>
+        
+        <a href="support.php" class="nav-item <?= $current_page === 'support.php' ? 'active' : '' ?>">
+            <i class="bi bi-question-circle"></i>Support
+        </a>
+    </div>
+
+    <div class="nav-divider"></div>
+    
+    <a href="logout.php" class="nav-item danger">
+        <i class="bi bi-box-arrow-right"></i>Logout
+    </a>
 </div>
 
-
-
-
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/jquery.min.js"></script>
 </body>
 </html>
 

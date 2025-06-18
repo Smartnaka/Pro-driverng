@@ -1,0 +1,63 @@
+flowchart TD
+  %% === FRONTEND UI ===
+  subgraph Frontend UI
+    FE1[Landing Page]
+    FE2[Employer Registration Page]
+    FE3[Login Page]
+    FE4[Dashboard]
+    FE5[Search Drivers Page]
+    FE6[Driver Profile Page]
+    FE7[Booking Form Page]
+    FE8[Payment Gateway Page]
+    FE9[Payment Success Page]
+    FE10[Booking Status Page]
+    FE11[Rate Driver Modal]
+  end
+
+  %% === BACKEND LOGIC ===
+  subgraph Backend PHP
+    BE1[POST /register.php]
+    BE2[Insert user (role = employer)]
+    BE3[POST /login.php]
+    BE4[Verify credentials & start session]
+    BE5[GET /drivers.php]
+    BE6[GET /driver-profile.php?id=]
+    BE7[POST /book-driver.php]
+    BE8[Insert booking (status = pending_payment)]
+    BE9[Redirect to Payment Gateway]
+    BE10[Payment Callback: /verify-payment.php]
+    BE11[Verify Transaction Status]
+    BE12{Payment Success?}
+    BE13[Update booking to pending_driver_response]
+    BE14[Send notification to driver]
+    BE15[GET /booking-status.php]
+    BE16[GET /rate-driver.php]
+    BE17[POST /submit-rating.php]
+    BE18[Insert into ratings table]
+  end
+
+  %% === DATABASE ACTIONS ===
+  subgraph MySQL DB
+    DB1[users]
+    DB2[drivers]
+    DB3[bookings]
+    DB4[ratings]
+  end
+
+  %% === FLOW CONNECTIONS ===
+  FE2 --> BE1 --> BE2 --> DB1
+  FE3 --> BE3 --> BE4 --> FE4
+
+  FE4 --> FE5 --> BE5 --> DB2
+  FE5 --> FE6 --> BE6 --> DB2
+  FE6 --> FE7 --> BE7 --> BE8 --> DB3
+  BE8 --> BE9 --> FE8
+  FE8 --> BE10 --> BE11 --> BE12
+
+  BE12 -->|Yes| BE13 --> DB3
+  BE13 --> BE14
+
+  BE12 -->|No| FE9
+
+  FE4 --> FE10 --> BE15 --> DB3
+  FE10 --> FE11 --> BE16 --> BE17 --> DB4

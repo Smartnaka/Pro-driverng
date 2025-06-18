@@ -2,162 +2,346 @@
 session_start();
 include 'include/db.php';
 
+// Generate CSRF token if not exists
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Initialize variables
+$error_message = '';
+$email = '';
+
+// Check for error message in session and assign to variable
+if (isset($_SESSION['error_message'])) {
+    $error_message = $_SESSION['error_message'];
+    unset($_SESSION['error_message']); // Clear the session error
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-
-    // Prepare the query to check if the user exists
-    $stmt = $conn->prepare("SELECT id, first_name, last_name, email, password FROM customers WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-        
-        // Verify password
-        if (password_verify($password, $user['password'])) {
-            // Start the session and store user information
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['first_name'] = $user['first_name'];
-            $_SESSION['last_name'] = $user['last_name'];
-            $_SESSION['email'] = $user['email'];
-
-            // Redirect user to the dashboard (or wherever you want)
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            $error_message = "Invalid password!";
-        }
+    // Verify CSRF token
+    if (!isset($_POST['csrf_token']) || $_SESSION['csrf_token'] !== $_POST['csrf_token']) {
+        $error_message = "Invalid request, please try again.";
     } else {
-        $error_message = "No account found with this email!";
+        // Sanitize and validate inputs
+        $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
+        $password = $_POST['password'];
+
+        // Validate email
+        if (!$email) {
+            $error_message = "Invalid email format.";
+        } else {
+            try {
+                // Check if user exists
+                $stmt = $conn->prepare("SELECT id, first_name, last_name, email, password FROM customers WHERE email = ?");
+                if (!$stmt) {
+                    throw new Exception($conn->error);
+                }
+
+                $stmt->bind_param("s", $email);
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                if ($result && $result->num_rows > 0) {
+                    $user = $result->fetch_assoc();
+                    
+                    // Verify password
+                    if (password_verify($password, $user['password'])) {
+                        // Start the session and store user information
+                        session_regenerate_id(true);
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['first_name'] = $user['first_name'];
+                        $_SESSION['last_name'] = $user['last_name'];
+                        $_SESSION['email'] = $user['email'];
+                        $_SESSION['last_activity'] = time();
+
+                        // Redirect to dashboard
+                        header("Location: dashboard.php");
+                        exit();
+                    } else {
+                        $error_message = "Invalid email or password.";
+                    }
+                } else {
+                    $error_message = "Invalid email or password.";
+                }
+                $stmt->close();
+            } catch (Exception $e) {
+                error_log("Login error: " . $e->getMessage());
+                $error_message = "An error occurred. Please try again later.";
+            }
+        }
     }
 }
 
+// Set basic security headers
+header("X-Frame-Options: SAMEORIGIN");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Referrer-Policy: same-origin");
+header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-inline' 'unsafe-eval'");
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pro-Drivers Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pro-Drivers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f0f2f5;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
 
-  <!-- Bootstrap links -->
-   <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
-  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> -->
-  <style>
-    .button1 {
-  background-color: #3b82f6; 
-  border: none;
-  color: white;
-  padding: 10px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  width:100%;
-  margin: 4px 2px;
-  border-radius: 12px;
-  cursor: pointer;
-}
+        .main-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            padding: 2.5rem;
+            margin: 2rem auto;
+            max-width: 500px;
+            width: 100%;
+        }
 
-    body {
-      background-color: #f0f2f5;
-    }
+        .page-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
 
-    .login-box {
-      max-width: 420px;
-      margin: 80px auto;
-      padding: 40px 30px;
-      background-color: white;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.05);
-    }
+        .page-header h2 {
+            color: #1a73e8;
+            font-weight: 600;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
 
-    .logo {
-      display: block;
-      margin: 0 auto 30px;
-      width: 120px;
-      height: auto;
-    }
+        .page-header:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: #1a73e8;
+            border-radius: 2px;
+        }
 
-    .form-control {
-      border-radius: 12px;
-    }
+        .input-group {
+            margin-bottom: 1.5rem;
+            border: 1px solid #e1e5ea;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
 
-    .btn-primary {
-      border-radius: 12px;
-      background-color: #0052cc;
-      border-color: #0052cc;
-    }
+        .input-group:focus-within {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+        }
 
-    .btn-primary:hover {
-      background-color: #003e99;
-      border-color: #003e99;
-    }
+        .input-group-text {
+            background: #f8f9fa;
+            border: none;
+            color: #1a73e8;
+            font-weight: 500;
+            min-width: 120px;
+            padding: 0.8rem 1rem;
+        }
 
-    .text-small {
-      font-size: 0.9rem;
-    }
+        .form-control {
+            border: none;
+            padding: 0.8rem 1rem;
+            font-size: 0.95rem;
+        }
 
-    .signup-link {
-      margin-top: 20px;
-      text-align: center;
-    }
+        .form-control:focus {
+            box-shadow: none;
+        }
 
-    .signup-link a {
-      color: #0052cc;
-      text-decoration: none;
-    }
+        .submit-btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
 
-    .signup-link a:hover {
-      text-decoration: underline;
-    }
+        .submit-btn:hover {
+            background: #1557b0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+        }
 
-    .alert {
-      color: red;
-      text-align: center;
-    }
-  </style>
+        .helper-links {
+            text-align: center;
+        }
+
+        .helper-links a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .helper-links a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background-color: #fee;
+            color: #c00;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #fcc;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .error-message i {
+            color: #c00;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 576px) {
+            .main-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .page-header h2 {
+                font-size: 1.75rem;
+            }
+
+            .input-group-text {
+                min-width: auto;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="main-container">
+            <div class="page-header">
+                <h2>Welcome Back</h2>
+                <p class="text-muted">Sign in to your account</p>
+            </div>
 
-  <div class="container">
-    <div class="login-box">
-      <img src="images/sm_logo.png" alt="Logo" class="logo">
-      <h4 class="text-center mb-4">Sign in to your account</h4>
+            <?php if (!empty($error_message)): ?>
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <?php echo htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8'); ?>
+            </div>
+            <?php endif; ?>
 
-      <?php if (isset($error_message)): ?>
-        <div class="alert alert-danger"><?= $error_message ?></div>
-      <?php endif; ?>
+            <form id="loginForm" method="post" autocomplete="off" novalidate>
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+                
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-envelope"></i> Email
+                    </span>
+                    <input type="email" id="email" name="email" class="form-control" 
+                           required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                           value="<?php echo htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?>"
+                           autocomplete="off">
+                </div>
 
-      <form action="login.php" method="POST">
-        <div class="mb-3">
-          <label for="email" class="form-label">Email address</label>
-          <input type="email" class="form-control" id="email" name="email" placeholder="e.g. user@example.com" required>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-lock"></i> Password
+                    </span>
+                    <input type="password" id="password" name="password" class="form-control" 
+                           required minlength="8"
+                           autocomplete="off">
+                </div>
+
+                <button type="submit" name="login" class="submit-btn">
+                    <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                </button>
+
+                <div class="helper-links">
+                    <p>
+                        <a href="forgot-password.php">
+                            <i class="fas fa-key me-1"></i> Forgot your password?
+                        </a>
+                    </p>
+                    <p>
+                        Don't have an account? 
+                        <a href="register.php">
+                            <i class="fas fa-user-plus me-1"></i> Create one now
+                        </a>
+                    </p>
+                </div>
+            </form>
         </div>
-        <div class="mb-3">
-          <label for="password" class="form-label">Password</label>
-          <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="rememberMe">
-            <label class="form-check-label text-small" for="rememberMe">Remember me</label>
-          </div>
-          <a href="forgot-password.php" class="text-small">Forgot password?</a>
-        </div>
-        <button type="submit" class="btn button1 w-100">Login</button>
-      </form>
-
-      <div class="signup-link">
-        <p class="mt-3 mb-0">Don't have an account? <a href="register.php">Create an account</a></p>
-      </div>
     </div>
-  </div>
 
-      <script src="./assets/javascript/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Prevent form resubmission
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+
+        // Form validation
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
+            let isValid = true;
+
+            // Email validation
+            if (!email.value.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
+                email.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                email.classList.remove('is-invalid');
+            }
+
+            // Password validation
+            if (password.value.length < 8) {
+                password.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                password.classList.remove('is-invalid');
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+
+        // Prevent XSS in form inputs
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[<>]/g, '');
+            });
+        });
+
+        // Auto-hide alerts after 4 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert, .error-message');
+            alerts.forEach(alert => {
+                alert.classList.add('fade');
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 4000);
+    </script>
 </body>
 </html>

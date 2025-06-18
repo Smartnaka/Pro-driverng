@@ -1,0 +1,57 @@
+%% filepath: c:\xampp\htdocs\New-Prodriverng\docs\full-merged.mmd
+flowchart TD
+
+    %% === FRONTEND VIEWS ===
+    subgraph FRONTEND["Frontend Views"]
+        F1[Landing Page]
+        F2[Register Page]
+        F3[Login Page]
+        F4[Employer Dashboard]
+        F5[Driver Dashboard]
+        F6[Admin Panel]
+        F7[Search Drivers]
+        F8[View Driver Profile]
+        F9[Booking Form]
+        F10[Redirect to Payment Gateway]
+        F11[Payment Success Page]
+        F12[Payment Failed Page]
+    end
+
+    %% === EMPLOYER FLOW ===
+    subgraph EMPLOYER["Employer Flow"]
+        E1[F2] --> E2["POST to /register.php"]
+        E2 --> F3
+        F3 --> E3["Login → Redirect to F4"]
+        F4 --> F7
+        F7 --> F8
+        F8 --> F9
+        F9 --> E4["Submit Booking"]
+        E4 --> F10
+        F10 --> E5["Redirect to Payment"]
+        E5 --> E6["Payment Callback"]
+        E6 --> E7{"Success?"}
+        E7 -->|Yes| E8["Pending Driver"]
+        E8 --> D6["Notify Driver"]
+        E7 -->|No| F12
+        F11 --> F4
+    end
+
+    %% === DRIVER FLOW ===
+    subgraph DRIVER["Driver Flow"]
+        D1[F2] -->|Register| D2["Register Driver"]
+        D2 --> F3
+        F3 --> D3["Login to Dashboard"]
+        F5 --> D4["Set Availability"]
+        D6["New Booking"] --> D7["Accept/Reject"]
+        D7 -->|Accept| D8["Confirm Booking"]
+        D7 -->|Reject| D9["Reject Booking"]
+        D8 --> D10["Complete Job"]
+    end
+
+    %% === ADMIN FLOW ===
+    subgraph ADMIN["Admin Flow"]
+        A1[F3] --> A2["Admin Login"]
+        F6 --> A3["Review Drivers"]
+        F6 --> A4["Manage Bookings"]
+        F6 --> A5["Reports"]
+    end

@@ -2,6 +2,12 @@
 session_start();
 include '../include/db.php';
 
+// Display success message if exists
+if (isset($_SESSION['success_message'])) {
+    $success = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
+
 // Generate CSRF token if not exists
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -78,21 +84,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // If there are no errors, proceed with database update
     if (empty($errors)) {
         try {
+            // Verify database connection
+            if ($conn->connect_error) {
+                throw new Exception("Database connection failed: " . $conn->connect_error);
+            }
+
+            // Simplified update query
             $sql = "UPDATE drivers SET 
-                address=?, experience=?, license_number=?, about_me=?, 
-                resident=?, family=?, education_level=?, drive=?, speak=?, nin=?, dob=?, 
-                bank_name=?, acc_num=?, acc_name=?, skills=?";
+                address = ?, 
+                experience = ?, 
+                license_number = ?, 
+                about_me = ?, 
+                resident = ?, 
+                family = ?, 
+                education_level = ?, 
+                drive = ?, 
+                speak = ?, 
+                nin = ?, 
+                dob = ?, 
+                bank_name = ?, 
+                acc_num = ?, 
+                acc_name = ?, 
+                skills = ?
+                WHERE id = ?";
 
             $params = [
-                $address, $experience, $license_number, $about_me,
-                $resident, $family, $education_level, $drive, $speak, $nin, $dob,
-                $bank_name, $acc_num, $acc_name, $skills
+                $address, 
+                $experience, 
+                $license_number, 
+                $about_me,
+                $resident, 
+                $family, 
+                $education_level, 
+                $drive, 
+                $speak, 
+                $nin, 
+                $dob,
+                $bank_name, 
+                $acc_num, 
+                $acc_name, 
+                $skills,
+                $id
             ];
-            $types = "sissssssssssss";
-            
-            $sql .= " WHERE id=?";
-            $params[] = $id;
-            $types .= "i";
+            $types = "sisssssssssssssi";
+
+            // Debug information
+            error_log("Updating driver profile with data:");
+            error_log("Driver ID: " . $id);
+            error_log("SQL: " . $sql);
+            error_log("Parameters: " . print_r($params, true));
 
             $stmt = mysqli_prepare($conn, $sql);
             if (!$stmt) {
@@ -107,21 +147,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Failed to execute statement: " . mysqli_stmt_error($stmt));
             }
 
-            if (mysqli_stmt_affected_rows($stmt) === 0) {
-                throw new Exception("No changes were made to the profile.");
-            }
+            $affected_rows = mysqli_stmt_affected_rows($stmt);
+            error_log("Affected rows: " . $affected_rows);
 
             mysqli_stmt_close($stmt);
-            $success = "Profile updated successfully.";
-            header("Location: edit_profile.php?updated=1");
-            exit();
+
+            if ($affected_rows > 0) {
+                // Refresh the driver data
+                $query = "SELECT * FROM drivers WHERE id = ?";
+                $stmt = mysqli_prepare($conn, $query);
+                mysqli_stmt_bind_param($stmt, "i", $id);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+                $driver = mysqli_fetch_assoc($result);
+                mysqli_stmt_close($stmt);
+
+                echo "<script>
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Your profile has been updated successfully',
+                        icon: 'success',
+                        timer: 3000,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                </script>";
+            } else {
+                throw new Exception("No changes were made to the profile. Please try again.");
+            }
 
         } catch (Exception $e) {
             error_log("Profile update error: " . $e->getMessage());
-            $error = "Database error: " . $e->getMessage();
+            echo "<script>
+                Swal.fire({
+                    title: 'Error!',
+                    text: '" . addslashes($e->getMessage()) . "',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            </script>";
         }
     } else {
-        $error = implode("<br>", $errors);
+        echo "<script>
+            Swal.fire({
+                title: 'Validation Error!',
+                html: '" . addslashes(implode("<br>", $errors)) . "',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        </script>";
     }
 }
 
@@ -681,7 +757,29 @@ $locations = [
             .then(response => response.text())
             .then(html => {
                 // Check if the response contains success message
-                if (html.includes('updated=1')) {
+                if (html.includes('success')) {
+                    // Parse the HTML response to get updated values
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    
+                    // Update form fields with new values
+                    Object.keys(formFields).forEach(fieldName => {
+                        const newField = tempDiv.querySelector(`[name="${fieldName}"]`);
+                        const currentField = form.querySelector(`[name="${fieldName}"]`);
+                        if (newField && currentField) {
+                            // For select elements
+                            if (currentField.tagName === 'SELECT') {
+                                const newValue = newField.value;
+                                Array.from(currentField.options).forEach(option => {
+                                    option.selected = option.value === newValue;
+                                });
+                            } else {
+                                // For other input types
+                                currentField.value = newField.value;
+                            }
+                        }
+                    });
+
                     // Show success message using SweetAlert2
                     Swal.fire({
                         title: 'Success!',
@@ -692,11 +790,6 @@ $locations = [
                         showConfirmButton: false,
                         toast: true,
                         position: 'top-end'
-                    });
-
-                    // Reset form validation states
-                    form.querySelectorAll('.is-valid').forEach(field => {
-                        field.classList.remove('is-valid');
                     });
                 } else {
                     // Extract error message if present
