@@ -40,6 +40,55 @@ if (!$notifications_table_exists) {
     $conn->query($create_table_sql);
 }
 
+// Fetch real statistics
+$stats = [];
+
+// Total trips (completed bookings)
+$trips_sql = "SELECT COUNT(*) as count FROM bookings WHERE driver_id = ? AND status = 'completed'";
+$stmt = $conn->prepare($trips_sql);
+if ($stmt) {
+    $stmt->bind_param("i", $driver_id);
+    $stmt->execute();
+    $stats['total_trips'] = $stmt->get_result()->fetch_assoc()['count'];
+}
+
+// Active bookings
+$active_sql = "SELECT COUNT(*) as count FROM bookings WHERE driver_id = ? AND status IN ('confirmed', 'in_progress')";
+$stmt = $conn->prepare($active_sql);
+if ($stmt) {
+    $stmt->bind_param("i", $driver_id);
+    $stmt->execute();
+    $stats['active_bookings'] = $stmt->get_result()->fetch_assoc()['count'];
+}
+
+// Total earnings (sum of completed bookings)
+$earnings_sql = "SELECT COALESCE(SUM(amount), 0) as total FROM bookings WHERE driver_id = ? AND status = 'completed'";
+$stmt = $conn->prepare($earnings_sql);
+if ($stmt) {
+    $stmt->bind_param("i", $driver_id);
+    $stmt->execute();
+    $stats['total_earnings'] = $stmt->get_result()->fetch_assoc()['total'];
+}
+
+// Average rating (placeholder for now)
+$stats['average_rating'] = 4.8;
+
+// Recent bookings
+$recent_bookings_sql = "SELECT b.*, 
+    CONCAT(c.first_name, ' ', c.last_name) as customer_name,
+    c.phone as customer_phone
+    FROM bookings b 
+    LEFT JOIN customers c ON b.user_id = c.id 
+    WHERE b.driver_id = ? 
+    ORDER BY b.created_at DESC 
+    LIMIT 5";
+$stmt = $conn->prepare($recent_bookings_sql);
+if ($stmt) {
+    $stmt->bind_param("i", $driver_id);
+    $stmt->execute();
+    $recent_bookings = $stmt->get_result();
+}
+
 // Fetch unread notifications count
 $unread_notifications = 0;
 if ($notifications_table_exists) {
@@ -53,7 +102,7 @@ if ($notifications_table_exists) {
 }
 
 // Determine profile picture path
-$picPath = !empty($driver['profile_picture']) ? '../' . $driver['profile_picture'] : "../images/default-profile.png";
+$picPath = !empty($driver['profile_picture']) ? '../' . $driver['profile_picture'] : "../images/default-avatar.png";
 $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
 
 // Update driver status if requested
@@ -69,348 +118,506 @@ if (isset($_POST['update_status'])) {
     header("Location: dashboard.php");
     exit();
 }
+
+// Function to get status badge class
+function getStatusBadgeClass($status) {
+    return match($status) {
+        'pending' => 'badge bg-warning text-dark',
+        'confirmed' => 'badge bg-info',
+        'in_progress' => 'badge bg-primary',
+        'completed' => 'badge bg-success',
+        'cancelled' => 'badge bg-danger',
+        default => 'badge bg-secondary'
+    };
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Driver Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Dashboard - Pro-Drivers</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #06b6d4;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
 
-  <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f8f9fa;
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--light-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
 
-    .sidebar {
-      background-color: #e9f2fb;
-      color: #343a40;
-      padding: 1.5rem 1rem;
-      height: 100vh;
-      border-right: 1px solid #dee2e6;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 250px;
-      z-index: 1040;
-    }
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
 
-    .sidebar a {
-      color: #343a40;
-      text-decoration: none;
-      display: block;
-      padding: 0.75rem 1rem;
-      border-radius: 0.375rem;
-      margin-bottom: 0.5rem;
-      transition: background 0.3s, color 0.3s;
-    }
+        /* Header */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
 
-    .sidebar a:hover,
-    .sidebar a:focus {
-      background-color: #cfe2ff;
-      color: #0d6efd;
-    }
+        .welcome-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
 
-    .profile-pic {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 3px solid #0d6efd;
-      margin-bottom: 0.75rem;
-    }
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
 
-    .card {
-      border: none;
-      border-radius: 0.75rem;
-    }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            margin-right: 0.5rem;
+        }
 
-    .card h5 {
-      font-weight: 600;
-    }
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
 
-    .content {
-      margin-left: 250px;
-      padding: 2rem;
-      min-height: 100vh;
-    }
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
 
-    .welcome-header {
-      background: linear-gradient(135deg, #0d6efd, #0099ff);
-      color: white;
-      border-radius: 16px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-    }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
 
-    .welcome-header h3 {
-      font-size: 1.75rem;
-      font-weight: 600;
-      margin: 0;
-    }
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
 
-    .stats-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
 
-    .stat-card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
 
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
 
-    .stat-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1rem;
-      font-size: 1.5rem;
-    }
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
 
-    .stat-value {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin: 0;
-      color: #1e293b;
-    }
+        .card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
 
-    .stat-label {
-      color: #64748b;
-      margin: 0;
-      font-size: 0.875rem;
-    }
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--light-bg);
+        }
 
-    .info-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      height: 100%;
-    }
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
 
-    .info-card-header {
-      padding: 1.25rem;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+        .card-title i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+        }
 
-    .info-card-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #1e293b;
-      margin: 0;
-    }
+        .card-body {
+            padding: 1.5rem;
+        }
 
-    .info-card-body {
-      padding: 1.25rem;
-    }
+        /* Booking Items */
+        .booking-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-    .info-item {
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    }
+        .booking-item:last-child {
+            border-bottom: none;
+        }
 
-    .info-item:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: none;
-    }
+        .booking-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 1rem;
+        }
 
-    .info-label {
-      color: #64748b;
-      font-size: 0.875rem;
-      margin-bottom: 0.25rem;
-    }
+        .booking-details {
+            flex: 1;
+        }
 
-    .info-value {
-      color: #1e293b;
-      font-weight: 500;
-    }
+        .booking-customer {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
 
-    .support-card {
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-      color: white;
-    }
+        .booking-info {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
 
-    .support-card .info-card-title {
-      color: white;
-    }
+        .booking-status {
+            margin-left: 1rem;
+        }
 
-    .support-link {
-      color: white;
-      text-decoration: none;
-      padding: 0.75rem 1rem;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      display: inline-block;
-      transition: background 0.2s ease;
-    }
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            gap: 1rem;
+        }
 
-    .support-link:hover {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-    }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: var(--light-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
 
-    @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-      }
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
 
-      .sidebar.active {
-        transform: translateX(0);
-      }
+        .action-btn i {
+            width: 24px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
 
-      .content {
-        margin-left: 0;
-        padding: 1rem;
-      }
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
-      .welcome-header {
-        padding: 1.5rem;
-      }
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
 
-      .overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1030;
-      }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
 
-      .overlay.active {
-        display: block;
-      }
-    }
-  </style>
+            .dashboard-header {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
+    <!-- Include Shared Sidebar -->
+    <?php include 'includes/sidebar.php'; ?>
 
-<!-- Sidebar -->
-<?php include 'sidebar.php'; ?>
-
-<!-- Overlay for mobile -->
-<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-<!-- Mobile Navbar -->
-<nav class="navbar navbar-light bg-white d-md-none border-bottom">
-  <div class="container-fluid">
-    <button class="btn btn-outline-primary" onclick="toggleSidebar()">☰ Menu</button>
-    <span class="navbar-brand mb-0">Dashboard</span>
-  </div>
-</nav>
-
-<!-- Main Content -->
-<div class="content">
-  <div class="welcome-header">
-    <h3>Welcome back, <?= htmlspecialchars($driver['first_name']) ?>! 👋</h3>
-    <p class="mb-0 mt-2 opacity-75">Here's your dashboard overview</p>
-  </div>
-
-  <div class="stats-container">
-    <div class="stat-card">
-      <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
-        <i class="fas fa-route"></i>
-      </div>
-      <h4 class="stat-value">0</h4>
-      <p class="stat-label">Total Trips</p>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;">
-        <i class="fas fa-star"></i>
-      </div>
-      <h4 class="stat-value">0.0</h4>
-      <p class="stat-label">Average Rating</p>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;">
-        <i class="fas fa-dollar-sign"></i>
-      </div>
-      <h4 class="stat-value">$0.00</h4>
-      <p class="stat-label">Total Earnings</p>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <div class="col-lg-8">
-      <div class="info-card">
-        <div class="info-card-header">
-          <h5 class="info-card-title">
-            <i class="fas fa-user-circle me-2"></i> Account Information
-          </h5>
-          <a href="edit_profile.php" class="btn btn-sm btn-outline-primary">
-            <i class="fas fa-edit me-1"></i> Edit Profile
-          </a>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header fade-in-up">
+            <div class="welcome-text">Welcome back, <?= htmlspecialchars($driver['first_name']) ?>! 👋</div>
+            <p class="mb-0 opacity-75">Here's what's happening with your account today</p>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <?= $driver['is_online'] ? 'Online' : 'Offline' ?>
+            </div>
         </div>
-        <div class="info-card-body">
-          <div class="info-item">
-            <div class="info-label">Phone Number</div>
-            <div class="info-value"><?= htmlspecialchars($driver['phone']) ?></div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">License Number</div>
-            <div class="info-value"><?= htmlspecialchars($driver['license_number'] ?? 'Not Set') ?></div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Address</div>
-            <div class="info-value"><?= htmlspecialchars($driver['address'] ?? 'Not Set') ?></div>
-          </div>
+
+        <!-- Statistics Grid -->
+        <div class="stats-grid">
+            <div class="stat-card fade-in-up" style="animation-delay: 0.1s;">
+                <div class="stat-header">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                        <i class="fas fa-route"></i>
+                    </div>
+                </div>
+                <div class="stat-value"><?= number_format($stats['total_trips']) ?></div>
+                <div class="stat-label">Total Trips Completed</div>
+            </div>
+
+            <div class="stat-card fade-in-up" style="animation-delay: 0.2s;">
+                <div class="stat-header">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                </div>
+                <div class="stat-value"><?= number_format($stats['active_bookings']) ?></div>
+                <div class="stat-label">Active Bookings</div>
+            </div>
+
+            <div class="stat-card fade-in-up" style="animation-delay: 0.3s;">
+                <div class="stat-header">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+                <div class="stat-value"><?= number_format($stats['average_rating'], 1) ?></div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+
+            <div class="stat-card fade-in-up" style="animation-delay: 0.4s;">
+                <div class="stat-header">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <div class="stat-value">$<?= number_format($stats['total_earnings'], 2) ?></div>
+                <div class="stat-label">Total Earnings</div>
+            </div>
         </div>
-      </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Recent Bookings -->
+            <div class="card fade-in-up" style="animation-delay: 0.5s;">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-clock"></i>
+                        Recent Bookings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <?php if ($recent_bookings && $recent_bookings->num_rows > 0): ?>
+                        <?php while ($booking = $recent_bookings->fetch_assoc()): ?>
+                            <div class="booking-item">
+                                <div class="booking-avatar">
+                                    <?= strtoupper(substr($booking['customer_name'], 0, 1)) ?>
+                                </div>
+                                <div class="booking-details">
+                                    <div class="booking-customer"><?= htmlspecialchars($booking['customer_name']) ?></div>
+                                    <div class="booking-info">
+                                        <i class="fas fa-map-marker-alt text-primary me-1"></i>
+                                        <?= htmlspecialchars($booking['pickup_location']) ?> →
+                                        <?= htmlspecialchars($booking['dropoff_location']) ?>
+                                    </div>
+                                    <div class="booking-info">
+                                        <i class="fas fa-calendar text-secondary me-1"></i>
+                                        <?= date('M d, Y', strtotime($booking['pickup_date'])) ?>
+                                    </div>
+                                </div>
+                                <div class="booking-status">
+                                    <span class="<?= getStatusBadgeClass($booking['status']) ?>">
+                                        <?= ucfirst(str_replace('_', ' ', $booking['status'])) ?>
+                                    </span>
+                                </div>
+                            </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times text-muted" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <h6 class="text-muted">No bookings yet</h6>
+                            <p class="text-muted mb-0">Your recent bookings will appear here</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Quick Actions & Info -->
+            <div class="space-y-4">
+                <!-- Quick Actions -->
+                <div class="card fade-in-up" style="animation-delay: 0.6s;">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-bolt"></i>
+                            Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="quick-actions">
+                            <a href="edit_profile.php" class="action-btn">
+                                <i class="fas fa-edit"></i>
+                                Edit Profile
+                            </a>
+                            <a href="documents.php" class="action-btn">
+                                <i class="fas fa-upload"></i>
+                                Upload Documents
+                            </a>
+                            <a href="support.php" class="action-btn">
+                                <i class="fas fa-headset"></i>
+                                Get Support
+                            </a>
+                            <a href="notifications.php" class="action-btn">
+                                <i class="fas fa-bell"></i>
+                                View Notifications
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Status -->
+                <div class="card fade-in-up" style="animation-delay: 0.7s;">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Account Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="status-dot me-2"></div>
+                            <span class="fw-medium">Verification Status</span>
+                            <span class="ms-auto badge bg-<?= $driver['is_verified'] ? 'success' : 'warning' ?>">
+                                <?= $driver['is_verified'] ? 'Verified' : 'Pending' ?>
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="status-dot me-2"></div>
+                            <span class="fw-medium">Online Status</span>
+                            <span class="ms-auto badge bg-<?= $driver['is_online'] ? 'success' : 'secondary' ?>">
+                                <?= $driver['is_online'] ? 'Online' : 'Offline' ?>
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="status-dot me-2"></div>
+                            <span class="fw-medium">Account Type</span>
+                            <span class="ms-auto badge bg-primary">Professional Driver</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="col-lg-4">
-      <div class="info-card support-card">
-        <div class="info-card-header">
-          <h5 class="info-card-title">
-            <i class="fas fa-headset me-2"></i> Need Help?
-          </h5>
-        </div>
-        <div class="info-card-body">
-          <p>Our support team is available 24/7 to assist you with any questions or concerns.</p>
-          <a href="support.php" class="support-link">
-            <i class="fas fa-arrow-right me-2"></i> Contact Support
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Add loading states
+        document.addEventListener('DOMContentLoaded', function() {
+            // Remove loading class after page loads
+            setTimeout(() => {
+                document.body.classList.remove('loading');
+            }, 500);
+        });
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('active');
-    document.getElementById('overlay').classList.toggle('active');
-  }
-</script>
-
+        // Auto-refresh stats every 30 seconds
+        setInterval(() => {
+            // You can add AJAX call here to refresh stats
+            console.log('Refreshing stats...');
+        }, 30000);
+    </script>
 </body>
 </html>

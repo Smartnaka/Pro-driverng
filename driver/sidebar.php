@@ -13,6 +13,7 @@
     
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/driver-theme.css">
     <style>
         .sidebar {
             background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);

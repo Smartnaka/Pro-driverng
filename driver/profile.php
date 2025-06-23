@@ -21,7 +21,7 @@ $result = $stmt->get_result();
 $driver = $result->fetch_assoc();
 
 // Get profile picture path
-$profile_picture = $driver['profile_picture'] ?? '../images/default-profile.png';
+$profile_picture = $driver['profile_picture'] ?? '../images/default-avatar.png';
 ?>
 
 <!DOCTYPE html>
@@ -29,29 +29,52 @@ $profile_picture = $driver['profile_picture'] ?? '../images/default-profile.png'
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
+    <title>My Profile - Pro-Drivers</title>
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #06b6d4;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
-        .content {
-            margin-left: 250px;
+        body {
+            background: var(--light-bg);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .main-content {
+            margin-left: 280px;
             padding: 2rem;
-            transition: margin-left 0.3s ease;
+            min-height: 100vh;
         }
 
         .profile-header {
-            background: linear-gradient(135deg, #0d6efd, #0099ff);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
-            border-radius: 16px;
+            border-radius: 1rem;
             padding: 3rem 2rem;
             margin-bottom: 2rem;
             position: relative;
             overflow: hidden;
+            box-shadow: var(--shadow-lg);
         }
 
         .profile-header::before {
@@ -70,7 +93,7 @@ $profile_picture = $driver['profile_picture'] ?? '../images/default-profile.png'
             height: 150px;
             border-radius: 50%;
             border: 5px solid white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
             object-fit: cover;
             margin-bottom: 1.5rem;
         }
@@ -90,29 +113,30 @@ $profile_picture = $driver['profile_picture'] ?? '../images/default-profile.png'
         }
 
         .info-card {
-            background: white;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: 1rem;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
         }
 
         .info-card-title {
             font-size: 1.1rem;
-            color: #2c3e50;
+            color: var(--text-primary);
             margin-bottom: 1.5rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            border-bottom: 2px solid #e9ecef;
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 1rem;
         }
 
         .info-item {
             margin-bottom: 1rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #f8f9fa;
+            border-bottom: 1px solid var(--light-bg);
         }
 
         .info-item:last-child {
@@ -122,13 +146,13 @@ $profile_picture = $driver['profile_picture'] ?? '../images/default-profile.png'
         }
 
         .info-label {
-            color: #6c757d;
+            color: var(--text-secondary);
             font-size: 0.9rem;
             margin-bottom: 0.25rem;
         }
 
         .info-value {
-            color: #2c3e50;
+            color: var(--text-primary);
             font-weight: 500;
         }
 
@@ -163,6 +187,7 @@ $profile_picture = $driver['profile_picture'] ?? '../images/default-profile.png'
             align-items: center;
             gap: 0.5rem;
             transition: background 0.3s ease;
+            text-decoration: none;
         }
 
         .edit-button:hover {
@@ -171,7 +196,7 @@ $profile_picture = $driver['profile_picture'] ?? '../images/default-profile.png'
         }
 
         @media (max-width: 768px) {
-            .content {
+            .main-content {
                 margin-left: 0;
                 padding: 1rem;
             }
@@ -197,130 +222,134 @@ $profile_picture = $driver['profile_picture'] ?? '../images/default-profile.png'
     </style>
 </head>
 <body>
+    <!-- Include Shared Sidebar -->
+    <?php include 'includes/sidebar.php'; ?>
 
-<?php include 'sidebar.php'; ?>
-
-<div class="content">
-    <div class="profile-header">
-        <img src="<?= htmlspecialchars($profile_picture) ?>" alt="Profile Picture" class="profile-picture">
-        <h1 class="profile-name"><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></h1>
-        <div class="profile-status">
-            <i class="bi bi-circle-fill <?= $driver['is_online'] ? 'text-success' : 'text-secondary' ?> me-2"></i>
-            <?= $driver['is_online'] ? 'Online' : 'Offline' ?>
-        </div>
-        <a href="edit_profile.php" class="btn edit-button">
-            <i class="bi bi-pencil-square"></i>
-            Edit Profile
-        </a>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-6">
-            <div class="info-card">
-                <h3 class="info-card-title">
-                    <i class="bi bi-person-circle"></i>
-                    Personal Information
-                </h3>
-                <div class="info-item">
-                    <div class="info-label">Email</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['email']) ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Phone Number</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['phone']) ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Date of Birth</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['dob'] ?? 'Not Set') ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">NIN</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['nin'] ?? 'Not Set') ?></div>
-                </div>
-            </div>
-
-            <div class="info-card">
-                <h3 class="info-card-title">
-                    <i class="bi bi-geo-alt"></i>
-                    Location Details
-                </h3>
-                <div class="info-item">
-                    <div class="info-label">Current Location</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['address'] ?? 'Not Set') ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Residential Address</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['resident'] ?? 'Not Set') ?></div>
-                </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="profile-header">
+            <a href="edit_profile.php" class="edit-button">
+                <i class="fas fa-edit"></i>
+                Edit Profile
+            </a>
+            <img src="<?= htmlspecialchars($profile_picture) ?>" alt="Profile Picture" class="profile-picture">
+            <div class="profile-name"><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></div>
+            <div class="profile-status">
+                <?php if ($driver['is_verified']): ?>
+                    <span class="badge-verified">✓ Verified Driver</span>
+                <?php else: ?>
+                    <span class="badge-pending">⏳ Pending Verification</span>
+                <?php endif; ?>
             </div>
         </div>
 
-        <div class="col-lg-6">
-            <div class="info-card">
-                <h3 class="info-card-title">
-                    <i class="bi bi-briefcase"></i>
-                    Professional Information
-                </h3>
-                <div class="info-item">
-                    <div class="info-label">Driver's License</div>
-                    <div class="info-value">
-                        <?= htmlspecialchars($driver['license_number'] ?? 'Not Set') ?>
-                        <?php if (!empty($driver['license_number'])): ?>
-                            <span class="badge-verified ms-2">Verified</span>
-                        <?php else: ?>
-                            <span class="badge-pending ms-2">Pending</span>
-                        <?php endif; ?>
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="info-card">
+                    <h5 class="info-card-title">
+                        <i class="fas fa-user"></i>
+                        Personal Information
+                    </h5>
+                    <div class="info-item">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value"><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email Address</div>
+                        <div class="info-value"><?= htmlspecialchars($driver['email']) ?></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Phone Number</div>
+                        <div class="info-value"><?= htmlspecialchars($driver['phone']) ?></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Date of Birth</div>
+                        <div class="info-value"><?= htmlspecialchars($driver['date_of_birth'] ?? 'Not provided') ?></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Address</div>
+                        <div class="info-value"><?= htmlspecialchars($driver['address'] ?? 'Not provided') ?></div>
                     </div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Experience</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['experience'] ?? '0') ?> years</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Vehicle Types</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['drive'] ?? 'Not Set') ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Languages</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['speak'] ?? 'Not Set') ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Skills</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['skills'] ?? 'Not Set') ?></div>
+
+                <div class="info-card">
+                    <h5 class="info-card-title">
+                        <i class="fas fa-id-card"></i>
+                        Driver Information
+                    </h5>
+                    <div class="info-item">
+                        <div class="info-label">License Number</div>
+                        <div class="info-value"><?= htmlspecialchars($driver['license_number'] ?? 'Not provided') ?></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">License Expiry Date</div>
+                        <div class="info-value"><?= htmlspecialchars($driver['license_expiry'] ?? 'Not provided') ?></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Years of Experience</div>
+                        <div class="info-value"><?= htmlspecialchars($driver['exp_years'] ?? '0') ?> years</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Vehicle Type</div>
+                        <div class="info-value"><?= htmlspecialchars($driver['vehicle_type'] ?? 'Not specified') ?></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="info-card">
-                <h3 class="info-card-title">
-                    <i class="bi bi-bank"></i>
-                    Bank Information
-                </h3>
-                <div class="info-item">
-                    <div class="info-label">Bank Name</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['bank_name'] ?? 'Not Set') ?></div>
+            <div class="col-lg-4">
+                <div class="info-card">
+                    <h5 class="info-card-title">
+                        <i class="fas fa-shield-alt"></i>
+                        Account Status
+                    </h5>
+                    <div class="info-item">
+                        <div class="info-label">Verification Status</div>
+                        <div class="info-value">
+                            <?php if ($driver['is_verified']): ?>
+                                <span class="badge-verified">✓ Verified</span>
+                            <?php else: ?>
+                                <span class="badge-pending">⏳ Pending</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Online Status</div>
+                        <div class="info-value">
+                            <?php if ($driver['is_online']): ?>
+                                <span class="badge-verified">🟢 Online</span>
+                            <?php else: ?>
+                                <span class="badge-pending">🔴 Offline</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Member Since</div>
+                        <div class="info-value"><?= date('M d, Y', strtotime($driver['created_at'])) ?></div>
+                    </div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Account Name</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['acc_name'] ?? 'Not Set') ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Account Number</div>
-                    <div class="info-value"><?= htmlspecialchars($driver['acc_num'] ?? 'Not Set') ?></div>
+
+                <div class="info-card">
+                    <h5 class="info-card-title">
+                        <i class="fas fa-cog"></i>
+                        Quick Actions
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <a href="edit_profile.php" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                        <a href="documents.php" class="btn btn-outline-primary">
+                            <i class="fas fa-file-alt me-2"></i>Manage Documents
+                        </a>
+                        <a href="settings.php" class="btn btn-outline-secondary">
+                            <i class="fas fa-cog me-2"></i>Account Settings
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Handle mobile sidebar toggle if needed
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('active');
-        document.querySelector('.mobile-overlay').classList.toggle('active');
-        document.body.style.overflow = document.getElementById('sidebar').classList.contains('active') ? 'hidden' : '';
-    }
-</script>
-
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html> 
+</html>

@@ -26,6 +26,7 @@ $driver = $result->fetch_assoc();
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/driver-theme.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -235,7 +236,7 @@ $driver = $result->fetch_assoc();
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/javascript/bootstrap.bundle.min.js"></script>
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
@@ -256,4 +257,4 @@ $driver = $result->fetch_assoc();
         });
     </script>
 </body>
-</html> 
+</html>

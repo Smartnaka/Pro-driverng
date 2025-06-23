@@ -139,424 +139,421 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documents - Driver Dashboard</title>
+    <title>Documents - Pro-Drivers</title>
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #06b6d4;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
+            background: var(--light-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
         }
-        .content {
-            margin-left: 250px;
+
+        .main-content {
+            margin-left: 280px;
             padding: 2rem;
+            min-height: 100vh;
         }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
         .upload-card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
         }
+
         .upload-zone {
-            border: 2px dashed #dee2e6;
-            border-radius: 8px;
+            border: 2px dashed var(--border-color);
+            border-radius: 0.75rem;
             padding: 2rem;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: var(--light-bg);
         }
+
         .upload-zone:hover {
-            border-color: #0d6efd;
-            background-color: #f8f9ff;
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.05);
         }
+
         .upload-icon {
             font-size: 2rem;
-            color: #0d6efd;
+            color: var(--primary-color);
             margin-bottom: 1rem;
         }
+
         .document-preview {
             width: 100%;
             height: 200px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 0.75rem;
             margin-top: 1rem;
+            border: 1px solid var(--border-color);
         }
+
         .document-info {
             margin-top: 1rem;
             font-size: 0.875rem;
-            color: #6c757d;
+            color: var(--text-secondary);
         }
+
         .modal-body {
             text-align: center;
             padding: 0;
         }
+
         .modal-body iframe {
             width: 100%;
             height: 80vh;
             border: none;
         }
+
         .modal-body img {
             max-width: 100%;
-            height: auto;
+            max-height: 80vh;
+            object-fit: contain;
         }
+
+        .card-header {
+            background: var(--light-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .btn-upload {
+            background: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-upload:hover {
+            background: var(--primary-dark);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-upload:disabled {
+            background: var(--secondary-color);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .alert {
+            border-radius: 0.75rem;
+            border: none;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border-left: 4px solid var(--danger-color);
+        }
+
         @media (max-width: 768px) {
-            .content {
+            .main-content {
                 margin-left: 0;
                 padding: 1rem;
+            }
+
+            .page-header {
+                padding: 1.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <?php include 'sidebar.php'; ?>
-
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-    <!-- Mobile Navbar -->
-    <nav class="navbar navbar-light bg-white d-md-none border-bottom">
-        <div class="container-fluid">
-            <button class="btn btn-outline-primary" onclick="toggleSidebar()">☰ Menu</button>
-            <span class="navbar-brand mb-0">Documents</span>
-        </div>
-    </nav>
-
-    <!-- Document View Modal -->
-    <div class="modal fade" id="documentModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Document Preview</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Content will be loaded dynamically -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <a href="#" class="btn btn-primary" id="downloadDocument" download>Download</a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Include Shared Sidebar -->
+    <?php include 'includes/sidebar.php'; ?>
 
     <!-- Main Content -->
-    <div class="content">
-        <h4 class="mb-4">Document Management</h4>
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h3><i class="fas fa-file-alt me-2"></i>Document Management</h3>
+            <p class="mb-0 opacity-75">Upload and manage your required documents for verification</p>
+        </div>
 
         <?php if ($success): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= $success ?>
+                <i class="fas fa-check-circle me-2"></i><?= htmlspecialchars($success) ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
 
         <?php if ($error): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= $error ?>
+                <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($error) ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
 
         <div class="row g-4">
-            <!-- Passport Photo Upload -->
-            <div class="col-md-4">
-                <div class="card upload-card">
-                    <div class="card-body">
-                        <h5 class="card-title mb-4">
-                            <i class="fas fa-id-badge me-2 text-primary"></i>
-                            Passport Photo
-                        </h5>
-                        <form method="POST" enctype="multipart/form-data">
-                            <div class="upload-zone" onclick="document.getElementById('passport').click()">
-                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                                <h6>Click to upload Passport Photo</h6>
-                                <p class="text-muted mb-0">Supported formats: JPG, PNG</p>
-                                <input type="file" id="passport" name="passport" class="d-none" accept=".jpg,.jpeg,.png">
-                            </div>
-                            <?php if (!empty($driver['photo_path'])): ?>
-                                <div class="document-info">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    Photo uploaded
-                                    <button type="button" class="btn btn-sm btn-outline-primary float-end" 
-                                            onclick="viewDocument('<?= htmlspecialchars($driver['photo_path']) ?>', 'Passport Photo')">
-                                        View
-                                    </button>
-                                </div>
-                            <?php endif; ?>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Driver's License Upload -->
-            <div class="col-md-4">
-                <div class="card upload-card">
-                    <div class="card-body">
-                        <h5 class="card-title mb-4">
-                            <i class="fas fa-id-card me-2 text-primary"></i>
+            <!-- Driver's License -->
+            <div class="col-lg-4">
+                <div class="upload-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-id-card"></i>
                             Driver's License
                         </h5>
-                        <form method="POST" enctype="multipart/form-data">
-                            <div class="upload-zone" onclick="document.getElementById('license').click()">
-                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                                <h6>Click to upload Driver's License</h6>
-                                <p class="text-muted mb-0">Supported formats: JPG, PNG, PDF</p>
-                                <input type="file" id="license" name="license" class="d-none" accept=".jpg,.jpeg,.png,.pdf">
+                    </div>
+                    <div class="card-body">
+                        <form id="licenseForm" enctype="multipart/form-data">
+                            <div class="upload-zone" onclick="document.getElementById('licenseFile').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <h6>Upload License</h6>
+                                <p class="text-muted mb-0">Click to select or drag and drop</p>
+                                <p class="text-muted small">JPG, PNG, PDF (Max 5MB)</p>
                             </div>
+                            <input type="file" id="licenseFile" name="license" accept=".jpg,.jpeg,.png,.pdf" style="display: none;" onchange="handleFileSelect(this, 'license')">
+                            
                             <?php if (!empty($driver['license_path'])): ?>
-                                <div class="document-info">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    Document uploaded
-                                    <button type="button" class="btn btn-sm btn-outline-primary float-end" 
-                                            onclick="viewDocument('<?= htmlspecialchars($driver['license_path']) ?>', 'Driver\'s License')">
-                                        View
-                                    </button>
+                                <div class="mt-3">
+                                    <img src="<?= htmlspecialchars($driver['license_path']) ?>" alt="License Preview" class="document-preview" onclick="openModal('<?= htmlspecialchars($driver['license_path']) ?>')">
+                                    <div class="document-info">
+                                        <i class="fas fa-check-circle text-success me-1"></i>
+                                        License uploaded successfully
+                                    </div>
                                 </div>
                             <?php endif; ?>
+                            
+                            <button type="submit" class="btn btn-upload w-100 mt-3" id="licenseBtn" style="display: none;">
+                                <i class="fas fa-upload me-2"></i>Upload License
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Vehicle Papers Upload -->
-            <div class="col-md-4">
-                <div class="card upload-card">
-                    <div class="card-body">
-                        <h5 class="card-title mb-4">
-                            <i class="fas fa-car me-2 text-primary"></i>
+            <!-- Vehicle Papers -->
+            <div class="col-lg-4">
+                <div class="upload-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-car"></i>
                             Vehicle Papers
                         </h5>
-                        <form method="POST" enctype="multipart/form-data">
-                            <div class="upload-zone" onclick="document.getElementById('vehicle_papers').click()">
-                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                                <h6>Click to upload Vehicle Papers</h6>
-                                <p class="text-muted mb-0">Supported formats: JPG, PNG, PDF</p>
-                                <input type="file" id="vehicle_papers" name="vehicle_papers" class="d-none" accept=".jpg,.jpeg,.png,.pdf">
+                    </div>
+                    <div class="card-body">
+                        <form id="vehicleForm" enctype="multipart/form-data">
+                            <div class="upload-zone" onclick="document.getElementById('vehicleFile').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <h6>Upload Vehicle Papers</h6>
+                                <p class="text-muted mb-0">Click to select or drag and drop</p>
+                                <p class="text-muted small">JPG, PNG, PDF (Max 5MB)</p>
                             </div>
+                            <input type="file" id="vehicleFile" name="vehicle_papers" accept=".jpg,.jpeg,.png,.pdf" style="display: none;" onchange="handleFileSelect(this, 'vehicle')">
+                            
                             <?php if (!empty($driver['vehicle_papers_path'])): ?>
-                                <div class="document-info">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    Document uploaded
-                                    <button type="button" class="btn btn-sm btn-outline-primary float-end"
-                                            onclick="viewDocument('<?= htmlspecialchars($driver['vehicle_papers_path']) ?>', 'Vehicle Papers')">
-                                        View
-                                    </button>
+                                <div class="mt-3">
+                                    <img src="<?= htmlspecialchars($driver['vehicle_papers_path']) ?>" alt="Vehicle Papers Preview" class="document-preview" onclick="openModal('<?= htmlspecialchars($driver['vehicle_papers_path']) ?>')">
+                                    <div class="document-info">
+                                        <i class="fas fa-check-circle text-success me-1"></i>
+                                        Vehicle papers uploaded successfully
+                                    </div>
                                 </div>
                             <?php endif; ?>
+                            
+                            <button type="submit" class="btn btn-upload w-100 mt-3" id="vehicleBtn" style="display: none;">
+                                <i class="fas fa-upload me-2"></i>Upload Vehicle Papers
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Document Guidelines -->
-        <div class="card upload-card mt-4">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-info-circle me-2 text-primary"></i>
-                    Document Guidelines
-                </h5>
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        Maximum file size: 5MB
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        Accepted formats: JPG, PNG, PDF
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        Documents must be clear and legible
-                    </li>
-                    <li>
-                        <i class="fas fa-check text-success me-2"></i>
-                        All information must be current and valid
-                    </li>
-                </ul>
+            <!-- Passport Photo -->
+            <div class="col-lg-4">
+                <div class="upload-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-user"></i>
+                            Passport Photo
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="passportForm" enctype="multipart/form-data">
+                            <div class="upload-zone" onclick="document.getElementById('passportFile').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <h6>Upload Passport Photo</h6>
+                                <p class="text-muted mb-0">Click to select or drag and drop</p>
+                                <p class="text-muted small">JPG, PNG (Max 5MB)</p>
+                            </div>
+                            <input type="file" id="passportFile" name="passport" accept=".jpg,.jpeg,.png" style="display: none;" onchange="handleFileSelect(this, 'passport')">
+                            
+                            <?php if (!empty($driver['photo_path'])): ?>
+                                <div class="mt-3">
+                                    <img src="<?= htmlspecialchars($driver['photo_path']) ?>" alt="Passport Photo Preview" class="document-preview" onclick="openModal('<?= htmlspecialchars($driver['photo_path']) ?>')">
+                                    <div class="document-info">
+                                        <i class="fas fa-check-circle text-success me-1"></i>
+                                        Passport photo uploaded successfully
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <button type="submit" class="btn btn-upload w-100 mt-3" id="passportBtn" style="display: none;">
+                                <i class="fas fa-upload me-2"></i>Upload Passport Photo
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Document Preview Modal -->
+    <div class="modal fade" id="documentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Document Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
+        function handleFileSelect(input, type) {
+            const file = input.files[0];
+            if (file) {
+                const btn = document.getElementById(type + 'Btn');
+                btn.style.display = 'block';
+                btn.disabled = false;
+                
+                // Show preview if it's an image
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = input.parentElement.querySelector('.document-preview') || 
+                                      input.parentElement.querySelector('.upload-zone');
+                        if (preview.classList.contains('upload-zone')) {
+                            preview.innerHTML = `<img src="${e.target.result}" alt="Preview" class="document-preview">`;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
         }
 
-        // Document preview function
-        function viewDocument(path, title) {
-            const modal = document.getElementById('documentModal');
-            const modalTitle = modal.querySelector('.modal-title');
-            const modalBody = modal.querySelector('.modal-body');
-            const downloadBtn = document.getElementById('downloadDocument');
+        function openModal(path) {
+            const modal = new bootstrap.Modal(document.getElementById('documentModal'));
+            const modalContent = document.getElementById('modalContent');
             
-            modalTitle.textContent = title;
-            downloadBtn.href = path;
-            
-            const extension = path.split('.').pop().toLowerCase();
-            if (extension === 'pdf') {
-                modalBody.innerHTML = `<iframe src="${path}"></iframe>`;
+            if (path.toLowerCase().endsWith('.pdf')) {
+                modalContent.innerHTML = `<iframe src="${path}"></iframe>`;
             } else {
-                modalBody.innerHTML = `<img src="${path}" class="img-fluid">`;
+                modalContent.innerHTML = `<img src="${path}" alt="Document">`;
             }
             
-            new bootstrap.Modal(modal).show();
+            modal.show();
         }
 
-        // AJAX Upload handling
-        document.querySelectorAll('input[type="file"]').forEach(fileInput => {
-            fileInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                // Get the upload zone and form
-                const form = this.closest('form');
-                const uploadZone = form.querySelector('.upload-zone');
-                const docType = this.getAttribute('name');
-
-                // Create progress bar
-                const progressBar = document.createElement('div');
-                progressBar.className = 'progress mt-3';
-                progressBar.innerHTML = `
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                         role="progressbar" 
-                         style="width: 0%" 
-                         aria-valuenow="0" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">0%</div>`;
+        // Handle form submissions
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const btn = this.querySelector('button[type="submit"]');
                 
-                // Add progress bar to upload zone
-                uploadZone.appendChild(progressBar);
-
-                // Create FormData
-                const formData = new FormData();
-                formData.append(docType, file);
-
-                // Create and configure AJAX request
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', window.location.href, true);
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-
-                // Upload progress handler
-                xhr.upload.onprogress = function(e) {
-                    if (e.lengthComputable) {
-                        const percentComplete = (e.loaded / e.total) * 100;
-                        const progressBarInner = progressBar.querySelector('.progress-bar');
-                        progressBarInner.style.width = percentComplete + '%';
-                        progressBarInner.textContent = Math.round(percentComplete) + '%';
-                        progressBarInner.setAttribute('aria-valuenow', percentComplete);
-                    }
-                };
-
-                // Response handler
-                xhr.onload = function() {
-                    console.log('Response received:', xhr.responseText); // Debug log
-                    
-                    if (xhr.status === 200) {
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            console.log('Parsed response:', response); // Debug log
-                            
-                            // Remove any existing alerts
-                            form.querySelectorAll('.alert').forEach(alert => alert.remove());
-                            
-                            if (response.success) {
-                                // Show success message
-                                const alert = document.createElement('div');
-                                alert.className = 'alert alert-success alert-dismissible fade show mt-3';
-                                alert.innerHTML = `
-                                    ${response.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-                                form.appendChild(alert);
-
-                                // Update document info
-                                const documentInfo = document.createElement('div');
-                                documentInfo.className = 'document-info';
-                                documentInfo.innerHTML = `
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    Document uploaded
-                                    <button type="button" class="btn btn-sm btn-outline-primary float-end" 
-                                            onclick="viewDocument('${response.path}', '${docType === 'license' ? 'Driver\'s License' : 'Vehicle Papers'}')">
-                                        View
-                                    </button>`;
-                                
-                                // Replace existing document info or add new one
-                                const existingInfo = form.querySelector('.document-info');
-                                if (existingInfo) {
-                                    existingInfo.replaceWith(documentInfo);
-                                } else {
-                                    form.appendChild(documentInfo);
-                                }
-
-                                // Auto-hide success message after 5 seconds
-                                setTimeout(() => {
-                                    const bsAlert = new bootstrap.Alert(alert);
-                                    bsAlert.close();
-                                }, 5000);
-                            } else {
-                                // Show error message
-                                const alert = document.createElement('div');
-                                alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
-                                alert.innerHTML = `
-                                    ${response.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-                                form.appendChild(alert);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing response:', e);
-                            console.error('Raw response:', xhr.responseText);
-                            const alert = document.createElement('div');
-                            alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
-                            alert.innerHTML = `
-                                Error processing response. Please try again.
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-                            form.appendChild(alert);
-                        }
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+                
+                fetch('', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
                     } else {
-                        console.error('Server returned status:', xhr.status);
-                        const alert = document.createElement('div');
-                        alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
-                        alert.innerHTML = `
-                            Server error: ${xhr.status}. Please try again.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-                        form.appendChild(alert);
+                        alert('Error: ' + data.message);
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload';
                     }
-
-                    // Remove progress bar after completion
-                    setTimeout(() => {
-                        progressBar.remove();
-                    }, 1000);
-                };
-
-                // Error handler
-                xhr.onerror = function(e) {
-                    console.error('Upload error:', e);
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
-                    alert.innerHTML = `
-                        Upload failed. Please try again.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-                    form.appendChild(alert);
-                    progressBar.remove();
-                };
-
-                // Send the request
-                xhr.send(formData);
-            });
-        });
-
-        // Auto-hide alerts after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                document.querySelectorAll('.alert').forEach(alert => {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while uploading the file.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload';
                 });
-            }, 5000);
+            });
         });
     </script>
 </body>
-</html> 
+</html>

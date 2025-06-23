@@ -495,7 +495,7 @@ if (isset($_GET['debug'])) {
                                         Licensed
                                     </span>
                                 </div>
-                                <form action="payment.php" method="GET" style="width: 100%;">
+                                <form action="payment/payment.php" method="GET" style="width: 100%;">
                                     <input type="hidden" name="driver_id" value="<?= htmlspecialchars($driver['id']) ?>">
                                     <input type="hidden" name="amount" value="5000"> <!-- Replace with actual amount calculation -->
                                     <button type="submit" class="select-btn">

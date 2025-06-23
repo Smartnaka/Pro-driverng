@@ -1,75 +1,17 @@
 <?php
 session_start();
+
+// Redirect if user is already logged in
+if (isset($_SESSION['user_id'])) {
+    header("Location: dashboard.php");
+    exit();
+}
+
 include 'include/db.php';
 
 // Generate CSRF token if not exists
-if (!isset($_SESSION['csrf_token'])) {
+if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-// Initialize variables
-$error_message = '';
-$email = '';
-
-// Check for error message in session and assign to variable
-if (isset($_SESSION['error_message'])) {
-    $error_message = $_SESSION['error_message'];
-    unset($_SESSION['error_message']); // Clear the session error
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Verify CSRF token
-    if (!isset($_POST['csrf_token']) || $_SESSION['csrf_token'] !== $_POST['csrf_token']) {
-        $error_message = "Invalid request, please try again.";
-    } else {
-        // Sanitize and validate inputs
-        $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
-        $password = $_POST['password'];
-
-        // Validate email
-        if (!$email) {
-            $error_message = "Invalid email format.";
-        } else {
-            try {
-                // Check if user exists
-                $stmt = $conn->prepare("SELECT id, first_name, last_name, email, password FROM customers WHERE email = ?");
-                if (!$stmt) {
-                    throw new Exception($conn->error);
-                }
-
-                $stmt->bind_param("s", $email);
-                $stmt->execute();
-                $result = $stmt->get_result();
-
-                if ($result && $result->num_rows > 0) {
-                    $user = $result->fetch_assoc();
-                    
-                    // Verify password
-                    if (password_verify($password, $user['password'])) {
-                        // Start the session and store user information
-                        session_regenerate_id(true);
-                        $_SESSION['user_id'] = $user['id'];
-                        $_SESSION['first_name'] = $user['first_name'];
-                        $_SESSION['last_name'] = $user['last_name'];
-                        $_SESSION['email'] = $user['email'];
-                        $_SESSION['last_activity'] = time();
-
-                        // Redirect to dashboard
-                        header("Location: dashboard.php");
-                        exit();
-                    } else {
-                        $error_message = "Invalid email or password.";
-                    }
-                } else {
-                    $error_message = "Invalid email or password.";
-                }
-                $stmt->close();
-            } catch (Exception $e) {
-                error_log("Login error: " . $e->getMessage());
-                $error_message = "An error occurred. Please try again later.";
-            }
-        }
-    }
 }
 
 // Set basic security headers
@@ -187,6 +129,11 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
             box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
         }
 
+        .submit-btn:disabled {
+            background: #a0c3f7;
+            cursor: not-allowed;
+        }
+
         .helper-links {
             text-align: center;
         }
@@ -202,36 +149,13 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
         }
 
         .error-message {
-            background-color: #fee;
-            color: #c00;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
             padding: 1rem;
             border-radius: 8px;
             margin-bottom: 1.5rem;
-            border: 1px solid #fcc;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .error-message i {
-            color: #c00;
-            font-size: 1.1rem;
-        }
-
-        @media (max-width: 576px) {
-            .main-container {
-                margin: 1rem;
-                padding: 1.5rem;
-            }
-
-            .page-header h2 {
-                font-size: 1.75rem;
-            }
-
-            .input-group-text {
-                min-width: auto;
-            }
+            display: none; /* Hidden by default */
         }
     </style>
 </head>
@@ -239,109 +163,76 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
     <div class="container">
         <div class="main-container">
             <div class="page-header">
-                <h2>Welcome Back</h2>
-                <p class="text-muted">Sign in to your account</p>
+                <h2>Customer Login</h2>
+                <p>Access your Pro-Drivers account</p>
             </div>
+            
+            <div id="error-message" class="error-message"></div>
 
-            <?php if (!empty($error_message)): ?>
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <?php echo htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8'); ?>
-            </div>
-            <?php endif; ?>
+            <form id="login-form" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']); ?>">
 
-            <form id="loginForm" method="post" autocomplete="off" novalidate>
-                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+                <div class="input-group">
+                    <label for="email" class="input-group-text"><i class="fas fa-envelope"></i> &nbsp;Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password" class="input-group-text"><i class="fas fa-lock"></i> &nbsp;Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                </div>
                 
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-envelope"></i> Email
-                    </span>
-                    <input type="email" id="email" name="email" class="form-control" 
-                           required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                           value="<?php echo htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?>"
-                           autocomplete="off">
-                </div>
-
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-lock"></i> Password
-                    </span>
-                    <input type="password" id="password" name="password" class="form-control" 
-                           required minlength="8"
-                           autocomplete="off">
-                </div>
-
-                <button type="submit" name="login" class="submit-btn">
-                    <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                <button type="submit" id="submit-btn" class="submit-btn">
+                    <i class="fas fa-sign-in-alt"></i>&nbsp; Login
                 </button>
-
-                <div class="helper-links">
-                    <p>
-                        <a href="forgot-password.php">
-                            <i class="fas fa-key me-1"></i> Forgot your password?
-                        </a>
-                    </p>
-                    <p>
-                        Don't have an account? 
-                        <a href="register.php">
-                            <i class="fas fa-user-plus me-1"></i> Create one now
-                        </a>
-                    </p>
-                </div>
             </form>
+
+            <div class="helper-links">
+                <a href="forgot-password.php">Forgot password?</a> | 
+                <a href="register.php">Create an account</a>
+            </div>
         </div>
     </div>
 
+    <script src="assets/javascript/jquery.min.js"></script>
     <script>
-        // Prevent form resubmission
-        if (window.history.replaceState) {
-            window.history.replaceState(null, null, window.location.href);
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('login-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const errorMessageDiv = document.getElementById('error-message');
 
-        // Form validation
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            const email = document.getElementById('email');
-            const password = document.getElementById('password');
-            let isValid = true;
-
-            // Email validation
-            if (!email.value.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
-                email.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                email.classList.remove('is-invalid');
-            }
-
-            // Password validation
-            if (password.value.length < 8) {
-                password.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                password.classList.remove('is-invalid');
-            }
-
-            if (!isValid) {
+            form.addEventListener('submit', function(e) {
                 e.preventDefault();
-            }
-        });
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp; Logging in...';
+                errorMessageDiv.style.display = 'none';
 
-        // Prevent XSS in form inputs
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[<>]/g, '');
+                const formData = new FormData(form);
+
+                fetch('api/login_handler.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        errorMessageDiv.textContent = data.message;
+                        errorMessageDiv.style.display = 'block';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i>&nbsp; Login';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    errorMessageDiv.textContent = 'An unexpected error occurred. Please try again.';
+                    errorMessageDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i>&nbsp; Login';
+                });
             });
         });
-
-        // Auto-hide alerts after 4 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert, .error-message');
-            alerts.forEach(alert => {
-                alert.classList.add('fade');
-                alert.classList.remove('show');
-                setTimeout(() => alert.remove(), 500);
-            });
-        }, 4000);
     </script>
 </body>
 </html>

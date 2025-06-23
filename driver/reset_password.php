@@ -52,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Reset Password - Pro-Drivers</title>
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/driver-theme.css">
 </head>
 <body>
 <div class="container mt-5">
@@ -82,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
-<script src="../javascript/jquery.min.js"></script>
-<script src="../javascript/bootstrap.min.js"></script>
+<script src="../assets/javascript/jquery.min.js"></script>
+<script src="../assets/javascript/bootstrap.min.js"></script>
 </body>
 </html>

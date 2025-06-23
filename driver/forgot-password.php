@@ -78,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Forgot Password - Pro-Drivers</title>
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/driver-theme.css">
 </head>
 <body>
 <div class="container mt-5">
@@ -90,20 +91,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php if (!empty($success_message)): ?>
                 <div class="alert alert-success"> <?php echo htmlspecialchars($success_message); ?> </div>
             <?php endif; ?>
-            <form method="post">
+            <form id="forgotForm" method="post" autocomplete="off">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email address</label>
                     <input type="email" class="form-control" id="email" name="email" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Send Reset Link</button>
+                <button type="submit" id="submitBtn" class="btn btn-primary w-100">Send Reset Link</button>
             </form>
+            <div id="ajax-message" class="mt-3"></div>
             <div class="text-center mt-3">
                 <a href="login.php" class="text-decoration-none">Back to Login</a>
             </div>
         </div>
     </div>
 </div>
-<script src="../javascript/jquery.min.js"></script>
-<script src="../javascript/bootstrap.min.js"></script>
+<script src="../assets/javascript/jquery.min.js"></script>
+<script src="../assets/javascript/bootstrap.min.js"></script>
+<script>
+$(function() {
+    $('#forgotForm').on('submit', function(e) {
+        e.preventDefault();
+        var $btn = $('#submitBtn');
+        $btn.prop('disabled', true).text('Sending...');
+        $('#ajax-message').html('');
+        $.ajax({
+            url: '',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'html',
+            success: function(response) {
+                var msg = $(response).find('.alert');
+                if (msg.length) {
+                    $('#ajax-message').html(msg);
+                } else {
+                    $('#ajax-message').html('<div class="alert alert-danger">Unexpected error. Please try again.</div>');
+                }
+                $btn.prop('disabled', false).text('Send Reset Link');
+            },
+            error: function() {
+                $('#ajax-message').html('<div class="alert alert-danger">Network error. Please try again.</div>');
+                $btn.prop('disabled', false).text('Send Reset Link');
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>

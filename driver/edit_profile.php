@@ -1,4 +1,127 @@
 <?php
+// --- AJAX JSON response for edit profile ---
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+) {
+    $address = trim($_POST['address'] ?? '');
+    $experience = filter_var($_POST['experience'] ?? '', FILTER_VALIDATE_INT);
+    $license_number = trim($_POST['license_number'] ?? '');
+    $about_me = trim($_POST['about_me'] ?? '');
+    $resident = trim($_POST['resident'] ?? '');
+    $family = trim($_POST['family'] ?? '');
+    $education_level = trim($_POST['education_level'] ?? '');
+    $drive = trim($_POST['drive'] ?? '');
+    $speak = trim($_POST['speak'] ?? '');
+    $nin = trim($_POST['nin'] ?? '');
+    $dob = trim($_POST['dob'] ?? '');
+    $bank_name = trim($_POST['bank_name'] ?? '');
+    $acc_num = trim($_POST['acc_num'] ?? '');
+    $acc_name = trim($_POST['acc_name'] ?? '');
+    $skills = trim($_POST['skills'] ?? '');
+    $errors = [];
+    if (empty($address)) $errors[] = "Location is required";
+    if (!$experience || $experience < 1 || $experience > 20) $errors[] = "Experience must be between 1 and 20 years";
+    if (empty($license_number)) $errors[] = "License number is required";
+    if (empty($about_me)) $errors[] = "About me is required";
+    if (empty($resident)) $errors[] = "Residential address is required";
+    if (empty($drive)) $errors[] = "Vehicle types is required";
+    if (empty($speak)) $errors[] = "Languages spoken is required";
+    if (!empty($nin) && !preg_match('/^\d{11}$/', $nin)) $errors[] = "NIN must be 11 digits";
+    if (!empty($dob)) {
+        $dob_timestamp = strtotime($dob);
+        $min_age = strtotime('-65 years');
+        $max_age = strtotime('-18 years');
+        if ($dob_timestamp > $max_age || $dob_timestamp < $min_age) {
+            $errors[] = "Age must be between 18 and 65 years";
+        }
+    }
+    if (!empty($acc_num) && !preg_match('/^\d{10}$/', $acc_num)) $errors[] = "Account number must be 10 digits";
+    if (empty($bank_name)) $errors[] = "Bank name is required";
+    if (empty($acc_name)) $errors[] = "Account name is required";
+    if (empty($errors)) {
+        try {
+            include '../include/db.php';
+            session_start();
+            $id = $_SESSION['driver_id'];
+            if ($conn->connect_error) {
+                throw new Exception("Database connection failed: " . $conn->connect_error);
+            }
+            $sql = "UPDATE drivers SET 
+                address = ?, 
+                experience = ?, 
+                license_number = ?, 
+                about_me = ?, 
+                resident = ?, 
+                family = ?, 
+                education_level = ?, 
+                drive = ?, 
+                speak = ?, 
+                nin = ?, 
+                dob = ?, 
+                bank_name = ?, 
+                acc_num = ?, 
+                acc_name = ?, 
+                skills = ?
+                WHERE id = ?";
+            $params = [
+                $address, 
+                $experience, 
+                $license_number, 
+                $about_me,
+                $resident, 
+                $family, 
+                $education_level, 
+                $drive, 
+                $speak, 
+                $nin, 
+                $dob,
+                $bank_name, 
+                $acc_num, 
+                $acc_name, 
+                $skills,
+                $id
+            ];
+            $types = "sisssssssssssssi";
+            $stmt = mysqli_prepare($conn, $sql);
+            if (!$stmt) {
+                throw new Exception("Failed to prepare statement: " . mysqli_error($conn));
+            }
+            if (!mysqli_stmt_bind_param($stmt, $types, ...$params)) {
+                throw new Exception("Failed to bind parameters: " . mysqli_stmt_error($stmt));
+            }
+            if (!mysqli_stmt_execute($stmt)) {
+                throw new Exception("Failed to execute statement: " . mysqli_stmt_error($stmt));
+            }
+            $affected_rows = mysqli_stmt_affected_rows($stmt);
+            mysqli_stmt_close($stmt);
+            if ($affected_rows > 0) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Your profile has been updated successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'No changes were made to the profile. Please try again.'
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => implode('<br>', $errors)
+        ]);
+    }
+    exit;
+}
+
 session_start();
 include '../include/db.php';
 
@@ -224,6 +347,7 @@ $locations = [
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="../assets/css/driver-theme.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -431,7 +555,8 @@ $locations = [
             </div>
         <?php endif; ?>
 
-        <form method="POST" enctype="multipart/form-data">
+        <div id="formMessage"></div>
+        <form id="editProfileForm" method="POST" action="edit_profile.php" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
             <!-- Personal Information -->
             <div class="form-section">
@@ -586,9 +711,9 @@ $locations = [
     </div>
 </div>
 
-<!-- Add SweetAlert2 JS before your custom script -->
-<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="//cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Replace SweetAlert2 CDN with local if available -->
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/javascript/bootstrap.bundle.min.js"></script>
 
 <script>
     function toggleSidebar() {
@@ -636,192 +761,66 @@ $locations = [
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form');
+    // Generic AJAX handler for the edit profile form
+    function ajaxifyForm(formId, messageId) {
+      const form = document.getElementById(formId);
+      const messageDiv = document.getElementById(messageId);
+      if (!form) return;
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
         const submitBtn = form.querySelector('button[type="submit"]');
-        const formFields = {
-            address: { required: true },
-            experience: { required: true, min: 1, max: 20 },
-            license_number: { required: true },
-            about_me: { required: true },
-            resident: { required: true },
-            drive: { required: true },
-            speak: { required: true },
-            nin: { pattern: /^\d{11}$/, required: false },
-            dob: { 
-                required: false,
-                validate: function(value) {
-                    if (!value) return true;
-                    const date = new Date(value);
-                    const now = new Date();
-                    const age = now.getFullYear() - date.getFullYear();
-                    return age >= 18 && age <= 65;
-                }
-            },
-            acc_num: { pattern: /^\d{10}$/, required: true },
-            bank_name: { required: true },
-            acc_name: { required: true }
-        };
-
-        // Real-time validation
-        Object.keys(formFields).forEach(fieldName => {
-            const field = form.querySelector(`[name="${fieldName}"]`);
-            if (!field) return;
-
-            field.addEventListener('input', function() {
-                validateField(field, formFields[fieldName]);
+        submitBtn.disabled = true;
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+        const formData = new FormData(form);
+        fetch(form.action, {
+          method: form.method,
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            messageDiv.innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
+            Swal.fire({
+              title: 'Success!',
+              text: data.message,
+              icon: 'success',
+              timer: 3000,
+              timerProgressBar: true,
+              showConfirmButton: false,
+              toast: true,
+              position: 'top-end'
             });
-
-            field.addEventListener('blur', function() {
-                validateField(field, formFields[fieldName]);
+          } else {
+            messageDiv.innerHTML = `<div class='alert alert-danger'>${data.message}</div>`;
+            Swal.fire({
+              title: 'Error!',
+              html: data.message,
+              icon: 'error',
+              confirmButtonText: 'OK'
             });
+          }
+        })
+        .catch(() => {
+          messageDiv.innerHTML = `<div class='alert alert-danger'>An error occurred. Please try again.</div>`;
+          Swal.fire({
+            title: 'Error!',
+            text: 'An error occurred while saving your changes. Please try again.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
         });
-
-        function validateField(field, rules) {
-            const value = field.value.trim();
-            let isValid = true;
-            let errorMessage = '';
-
-            // Required validation
-            if (rules.required && !value) {
-                isValid = false;
-                errorMessage = `${field.previousElementSibling.textContent} is required`;
-            }
-            // Pattern validation
-            else if (rules.pattern && value && !rules.pattern.test(value)) {
-                isValid = false;
-                errorMessage = `${field.previousElementSibling.textContent} is invalid`;
-            }
-            // Min/Max validation
-            else if (rules.min !== undefined && value && (parseInt(value) < rules.min || parseInt(value) > rules.max)) {
-                isValid = false;
-                errorMessage = `${field.previousElementSibling.textContent} must be between ${rules.min} and ${rules.max}`;
-            }
-            // Custom validation
-            else if (rules.validate && !rules.validate(value)) {
-                isValid = false;
-                errorMessage = `${field.previousElementSibling.textContent} is invalid`;
-            }
-
-            // Update UI
-            field.classList.toggle('is-invalid', !isValid);
-            field.classList.toggle('is-valid', isValid && value);
-
-            // Update or create feedback div
-            let feedback = field.nextElementSibling;
-            if (!feedback || !feedback.classList.contains('invalid-feedback')) {
-                feedback = document.createElement('div');
-                feedback.className = 'invalid-feedback';
-                field.parentNode.insertBefore(feedback, field.nextSibling);
-            }
-            feedback.textContent = errorMessage;
-
-            return isValid;
-        }
-
-        // Form submission
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            // Validate all fields
-            let isValid = true;
-            Object.keys(formFields).forEach(fieldName => {
-                const field = form.querySelector(`[name="${fieldName}"]`);
-                if (field && !validateField(field, formFields[fieldName])) {
-                    isValid = false;
-                }
-            });
-
-            if (!isValid) {
-                // Scroll to first error
-                const firstError = form.querySelector('.is-invalid');
-                if (firstError) {
-                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                return;
-            }
-
-            // Show loading state
-            submitBtn.disabled = true;
-            const originalBtnText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
-
-            // Prepare form data
-            const formData = new FormData(form);
-
-            // Send AJAX request
-            fetch(form.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(html => {
-                // Check if the response contains success message
-                if (html.includes('success')) {
-                    // Parse the HTML response to get updated values
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = html;
-                    
-                    // Update form fields with new values
-                    Object.keys(formFields).forEach(fieldName => {
-                        const newField = tempDiv.querySelector(`[name="${fieldName}"]`);
-                        const currentField = form.querySelector(`[name="${fieldName}"]`);
-                        if (newField && currentField) {
-                            // For select elements
-                            if (currentField.tagName === 'SELECT') {
-                                const newValue = newField.value;
-                                Array.from(currentField.options).forEach(option => {
-                                    option.selected = option.value === newValue;
-                                });
-                            } else {
-                                // For other input types
-                                currentField.value = newField.value;
-                            }
-                        }
-                    });
-
-                    // Show success message using SweetAlert2
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Your profile has been updated successfully',
-                        icon: 'success',
-                        timer: 3000,
-                        timerProgressBar: true,
-                        showConfirmButton: false,
-                        toast: true,
-                        position: 'top-end'
-                    });
-                } else {
-                    // Extract error message if present
-                    const errorMatch = html.match(/<div class="alert alert-danger">(.*?)<\/div>/);
-                    if (errorMatch) {
-                        Swal.fire({
-                            title: 'Error!',
-                            html: errorMatch[1],
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    } else {
-                        throw new Error('Unknown error occurred');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'An error occurred while saving your changes. Please try again.',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-            })
-            .finally(() => {
-                // Reset button state
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            });
-        });
-    });
+      });
+    }
+    // Usage for your form:
+    ajaxifyForm('editProfileForm', 'formMessage');
 </script>
 </body>
 </html>

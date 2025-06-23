@@ -95,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Settings - Driver Dashboard</title>
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/driver-theme.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -253,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/javascript/bootstrap.bundle.min.js"></script>
 <script>
     function confirmDelete() {
         return confirm('Are you sure you want to delete your account? This action cannot be undone.');
@@ -276,4 +277,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </script>
 
 </body>
-</html> 
+</html>

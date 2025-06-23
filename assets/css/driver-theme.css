@@ -1,0 +1,155 @@
+/* Pro-Drivers Driver Area Theme (based on login.php)
+   Place this in assets/css/driver-theme.css and link in all /driver pages
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+body, html {
+    font-family: 'Inter', sans-serif;
+    background: url('../images/login.jpg') no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Card/Container */
+.driver-card, .card, .dashboard-section, .profile-section, .settings-section, .support-section {
+    background: rgba(255,255,255,0.92);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 51, 102, 0.10), 0 1.5px 4px rgba(0,0,0,0.04);
+    padding: 2rem;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: #003366;
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn-bolt, .btn-primary, .btn-theme {
+    background: #003366;
+    color: #fff;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.9rem 1.5rem;
+    border: none;
+    transition: background 0.2s;
+}
+.btn-bolt:hover, .btn-primary:hover, .btn-theme:hover {
+    background: #00509e;
+    color: #fff;
+}
+
+/* Inputs */
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select, .form-control {
+    border-radius: 10px;
+    border: 1.5px solid #e1e5ea;
+    padding: 0.9rem 1rem;
+    font-size: 1rem;
+    background: #fff;
+    color: #222;
+}
+input:focus, textarea:focus, select:focus, .form-control:focus {
+    border-color: #003366;
+    box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.15);
+    outline: none;
+}
+
+/* Labels */
+.form-label, label {
+    font-weight: 500;
+    color: #222;
+}
+
+/* Links */
+a, .link-theme {
+    color: #003366;
+    text-decoration: none;
+    font-weight: 500;
+}
+a:hover, .link-theme:hover {
+    color: #00509e;
+    text-decoration: underline;
+}
+
+/* Sidebar */
+.sidebar, .driver-sidebar {
+    background: #003366;
+    color: #fff;
+}
+.sidebar .nav-item.active, .driver-sidebar .nav-item.active {
+    background: #00509e;
+    color: #fff;
+    border-radius: 8px;
+}
+
+/* Error/Success Messages */
+.error-message, .alert-danger {
+    background: #fee;
+    color: #c00;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #fcc;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.success-message, .alert-success {
+    background: #e6ffed;
+    color: #198754;
+    border: 1px solid #b6f2d2;
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Helper Links */
+.helper-links {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+.helper-links a {
+    color: #003366;
+    text-decoration: none;
+    font-weight: 500;
+    margin: 0 0.5rem;
+}
+.helper-links a:hover {
+    text-decoration: underline;
+    color: #00509e;
+}
+
+/* Profile Picture */
+.profile-pic, .profile-picture {
+    border-radius: 50%;
+    border: 3px solid #003366;
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+}
+
+/* Progress Bar */
+.progress-bar-theme, .progress-bar {
+    background: #003366;
+}
+
+/* Misc */
+::-webkit-scrollbar-thumb {
+    background: #003366;
+    border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #e1e5ea;
+}
+
+@media (max-width: 991.98px) {
+    .driver-card, .card, .dashboard-section, .profile-section, .settings-section, .support-section {
+        padding: 1rem;
+    }
+} 

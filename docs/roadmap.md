@@ -38,7 +38,7 @@
 - [ ] Notification on new booking assigned
 - [ ] Accept / Reject booking feature
 - [ ] Mark job as completed after trip
-- [ ] See booking and rating history
+- [ ] See booking history
 
 ---
 
