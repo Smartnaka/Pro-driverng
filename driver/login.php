@@ -141,22 +141,14 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Login - Pro-Drivers</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/driver-theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
     <style>
-        @font-face {
-            font-family: 'Euclid Circular B';
-            src: url('https://fonts.cdnfonts.com/s/17397/EuclidCircularB-Bold.woff') format('woff');
-            font-weight: 700 900;
-            font-style: normal;
-            font-display: swap;
-        }
         body, html {
             height: 100%;
             margin: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('../images/login.jpg') no-repeat center center fixed;
             background-size: cover;
         }
@@ -167,7 +159,6 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
             justify-content: space-between;
             padding: 0 8vw;
         }
-        /* Bolt-inspired left-content styles */
         .left-content {
             flex: 1 1 0%;
             max-width: 532px;
@@ -176,11 +167,11 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
             flex-direction: column;
             justify-content: center;
             align-items: flex-start;
-            padding: 0 0 0 3vw; /* shift more to the left */
+            padding: 0 0 0 3vw;
             min-height: 100vh;
         }
         .left-content h1 {
-            font-family: 'Euclid Circular B';
+            font-family: 'Montserrat', sans-serif;
             font-weight: 900;
             font-size: 48px;
             line-height: 1.05;
@@ -198,7 +189,7 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
             }
         }
         .left-content .subtitle {
-            font-family: 'Euclid Circular B';
+            font-family: 'Montserrat', sans-serif;
             font-weight: 500;
             font-size: 1.35rem;
             color: #fff;
@@ -304,12 +295,12 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
 <body>
     <div class="container-fluid login-container">
         <!-- Left Content Section -->
-        <div class="left-content">
-            <h1 style="font-family: 'Euclid Circular B'; font-weight: 900; font-size: 48px; line-height: 1.05; letter-spacing: -2px; color: #fff; margin: 0 0 24px 0; padding: 0; background: none; width: 100%; max-width: 532px;">
-                Make money driving with ProDriver
+        <div class="left-content" style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 0 0 0 3vw; max-width: 532px;">
+            <h1 style="font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 54px; line-height: 1.05; letter-spacing: -2px; color: #fff; margin: 0 0 24px 0; padding: 0; background: none; width: 100%; max-width: 532px; text-shadow: 0 4px 24px rgba(0,0,0,0.18);">
+                Drive. Earn. Thrive.
             </h1>
-            <div class="subtitle" style="font-family: 'Euclid Circular B'; font-weight: 500; font-size: 1.35rem; color: #fff; line-height: 1.4; margin-bottom: 0;">
-                Become a ProDriver, set your schedule and earn money by driving!
+            <div class="subtitle" style="font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 1.35rem; color: #fff; line-height: 1.4; margin-bottom: 0; max-width: 420px; text-shadow: 0 2px 12px rgba(0,0,0,0.12);">
+                Join ProDriver and turn your driving skills into real income—on your schedule.
             </div>
         </div>
         

@@ -71,97 +71,182 @@ if (isset($_POST['mark_read']) && isset($_POST['notification_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifications - Driver Dashboard</title>
+    <title>Notifications - Pro-Drivers</title>
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/driver-theme.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+:root {
+    --primary-color: #003366;
+    --primary-dark: #1557b0;
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    --light-bg: #f8fafc;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #003366;
+    --text-secondary: #64748b;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
         body {
+            background: var(--light-bg);
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
+            color: var(--text-primary);
+            line-height: 1.6;
         }
-        .notification-card {
-            border: none;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            transition: transform 0.2s;
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+            min-height: 100vh;
         }
-        .notification-card:hover {
-            transform: translateY(-2px);
-        }
-        .notification-unread {
-            border-left: 4px solid #0d6efd;
-            background-color: #f8f9ff;
-        }
-        .notification-header {
+        .notifications-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 1rem;
+            padding: 2.5rem 2rem 2rem 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding-bottom: 0.5rem;
+            gap: 1.5rem;
         }
-        .notification-time {
-            font-size: 0.875rem;
-            color: #6c757d;
+        .notifications-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: url('data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'20\' cy=\'20\' r=\'20\' fill=\'rgba(255,255,255,0.05)\'/></svg>') repeat;
+            opacity: 0.1;
         }
-        .notification-title {
+        .notifications-icon {
+            font-size: 3rem;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            padding: 1rem;
+            box-shadow: var(--shadow-md);
+            z-index: 1;
+        }
+        .notifications-title {
+            font-size: 2rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            z-index: 1;
         }
-        .notification-message {
-            color: #495057;
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .notification-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--light-bg);
+        }
+        .notification-item:last-child {
+            border-bottom: none;
         }
         .notification-icon {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 1rem;
+            font-size: 1.5rem;
+            margin-top: 0.25rem;
         }
         .notification-icon.info { background-color: #cfe2ff; color: #0d6efd; }
         .notification-icon.warning { background-color: #fff3cd; color: #ffc107; }
         .notification-icon.success { background-color: #d1e7dd; color: #198754; }
         .notification-icon.error { background-color: #f8d7da; color: #dc3545; }
+        .notification-content {
+            flex: 1;
+        }
+        .notification-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        .notification-message {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        .notification-time {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .notification-unread {
+            background: #f8f9ff;
+            border-left: 4px solid #0d6efd;
+            border-radius: 0.5rem;
+        }
+        .mark-read-btn {
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            background: none;
+            border: none;
+            padding: 0;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            .notifications-header {
+                padding: 2rem 1rem 1.5rem 1rem;
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+            .notifications-icon {
+                font-size: 2.2rem;
+                padding: 0.7rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <?php include 'sidebar.php'; ?>
+    <?php include 'includes/sidebar.php'; ?>
 
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-    <!-- Mobile Navbar -->
-    <nav class="navbar navbar-light bg-white d-md-none border-bottom">
-        <div class="container-fluid">
-            <button class="btn btn-outline-primary" onclick="toggleSidebar()">☰ Menu</button>
-            <span class="navbar-brand mb-0">Notifications</span>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="content p-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Notifications</h4>
-            <?php if (count($notifications) > 0): ?>
-            <button class="btn btn-outline-primary btn-sm">
-                Mark All as Read
-            </button>
-            <?php endif; ?>
+    <div class="main-content">
+        <div class="notifications-header">
+            <span class="notifications-icon"><i class="fas fa-bell"></i></span>
+            <span class="notifications-title">Notifications</span>
         </div>
 
-        <?php if (empty($notifications)): ?>
-            <div class="text-center py-5">
-                <i class="fas fa-bell fa-3x text-muted mb-3"></i>
-                <h5>No notifications yet</h5>
-                <p class="text-muted">We'll notify you when there's something new.</p>
-            </div>
-        <?php else: ?>
-            <?php foreach ($notifications as $notification): ?>
-                <div class="card notification-card <?php echo !$notification['is_read'] ? 'notification-unread' : ''; ?>">
-                    <div class="card-body">
-                        <div class="d-flex">
+        <div class="info-card">
+            <?php if (empty($notifications)): ?>
+                <div class="text-center py-5">
+                    <i class="fas fa-bell fa-3x text-muted mb-3"></i>
+                    <h5>No notifications yet</h5>
+                    <p class="text-muted">We'll notify you when there's something new.</p>
+                </div>
+            <?php else: ?>
+                <ul class="notification-list">
+                    <?php foreach ($notifications as $notification): ?>
+                        <li class="notification-item <?php echo !$notification['is_read'] ? 'notification-unread' : ''; ?>">
                             <div class="notification-icon <?php echo $notification['type']; ?>">
                                 <?php
                                 $icon = match($notification['type']) {
@@ -174,34 +259,28 @@ if (isset($_POST['mark_read']) && isset($_POST['notification_id'])) {
                                 ?>
                                 <i class="fas <?php echo $icon; ?>"></i>
                             </div>
-                            <div class="flex-grow-1">
-                                <div class="notification-header">
-                                    <h6 class="notification-title"><?php echo htmlspecialchars($notification['title']); ?></h6>
+                            <div class="notification-content">
+                                <div class="notification-title"><?php echo htmlspecialchars($notification['title']); ?></div>
+                                <div class="notification-message"><?php echo htmlspecialchars($notification['message']); ?></div>
+                                <div class="d-flex align-items-center">
                                     <span class="notification-time">
                                         <?php echo date('M j, g:i a', strtotime($notification['created_at'])); ?>
                                     </span>
+                                    <?php if (!$notification['is_read']): ?>
+                                        <form method="POST" class="d-inline ms-2">
+                                            <input type="hidden" name="notification_id" value="<?php echo $notification['id']; ?>">
+                                            <button type="submit" name="mark_read" class="mark-read-btn">Mark as read</button>
+                                        </form>
+                                    <?php endif; ?>
                                 </div>
-                                <p class="notification-message mb-2"><?php echo htmlspecialchars($notification['message']); ?></p>
-                                <?php if (!$notification['is_read']): ?>
-                                    <form method="POST" class="d-inline">
-                                        <input type="hidden" name="notification_id" value="<?php echo $notification['id']; ?>">
-                                        <button type="submit" name="mark_read" class="btn btn-sm btn-link p-0">Mark as read</button>
-                                    </form>
-                                <?php endif; ?>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </div>
     </div>
 
-    <script src="../assets/javascript/bootstrap.bundle.min.js"></script>
-    <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

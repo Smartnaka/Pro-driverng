@@ -26,8 +26,7 @@ $driver = $result->fetch_assoc();
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/driver-theme.css">
-    <style>
+   <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
@@ -108,7 +107,7 @@ $driver = $result->fetch_assoc();
     </style>
 </head>
 <body>
-    <?php include 'sidebar.php'; ?>
+    <?php include 'includes/sidebar.php'; ?>
 
     <!-- Overlay for mobile -->
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>

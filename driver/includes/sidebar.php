@@ -42,23 +42,55 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
 
 <!-- Sidebar Styles -->
 <style>
+    :root {
+        --primary-dark: #1557b0;
+        --secondary-color: #64748b;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #06b6d4;
+        --light-bg: #f8fafc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-primary: #003366;
+        --text-secondary: #64748b;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --sidebar-width: 280px;
+        --sidebar-bg: #f4f7fb;
+        --sidebar-border: #e2e8f0;
+        --sidebar-text: #003366;
+        --sidebar-text-secondary: #64748b;
+        --sidebar-link-hover: #e6f0fa;
+        --sidebar-link-active-bg: #003366;
+        --sidebar-link-active-text: #fff;
+        --sidebar-badge-bg: #ef4444;
+        --sidebar-badge-text: #fff;
+        --sidebar-avatar-border: #003366;
+        --sidebar-shadow: 0 4px 12px 0 rgba(0,0,0,0.07);
+        --sidebar-scrollbar-thumb: #e2e8f0;
+        --sidebar-scrollbar-thumb-hover: #64748b;
+    }
     /* Sidebar Styles */
+    
     .sidebar {
         position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
-        width: 280px;
-        background: var(--card-bg);
-        border-right: 1px solid var(--border-color);
+        width: var(--sidebar-width);
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--sidebar-border);
         z-index: 1000;
         overflow-y: auto;
         transition: transform 0.3s ease;
+        box-shadow: var(--sidebar-shadow);
     }
 
     .sidebar-header {
         padding: 2rem 1.5rem 1rem;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--sidebar-border);
     }
 
     .profile-section {
@@ -71,21 +103,21 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
         height: 80px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid var(--primary-color);
+        border: 3px solid var(--sidebar-avatar-border);
         margin-bottom: 1rem;
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 2px 8px 0 rgba(0,0,0,0.06);
     }
 
     .profile-name {
         font-size: 1.1rem;
         font-weight: 600;
-        color: var(--text-primary);
+        color: var(--sidebar-text);
         margin-bottom: 0.25rem;
     }
 
     .profile-email {
         font-size: 0.875rem;
-        color: var(--text-secondary);
+        color: var(--sidebar-text-secondary);
     }
 
     .nav-menu {
@@ -100,7 +132,7 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
         display: flex;
         align-items: center;
         padding: 0.75rem 1rem;
-        color: var(--text-secondary);
+        color: var(--sidebar-text-secondary);
         text-decoration: none;
         border-radius: 0.5rem;
         transition: all 0.2s ease;
@@ -108,13 +140,13 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
     }
 
     .nav-link:hover {
-        background: rgba(37, 99, 235, 0.1);
-        color: var(--primary-color);
+        background: var(--sidebar-link-hover);
+        color: var(--sidebar-text);
     }
 
     .nav-link.active {
-        background: var(--primary-color);
-        color: white;
+        background: var(--sidebar-link-active-bg);
+        color: var(--sidebar-link-active-text);
     }
 
     .nav-link i {
@@ -126,8 +158,8 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
     .nav-badge {
         position: absolute;
         right: 1rem;
-        background: var(--danger-color);
-        color: white;
+        background: var(--sidebar-badge-bg);
+        color: var(--sidebar-badge-text);
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
         border-radius: 999px;
@@ -140,16 +172,16 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
     }
 
     .sidebar::-webkit-scrollbar-track {
-        background: var(--light-bg);
+        background: var(--sidebar-bg);
     }
 
     .sidebar::-webkit-scrollbar-thumb {
-        background: var(--border-color);
+        background: var(--sidebar-scrollbar-thumb);
         border-radius: 3px;
     }
 
     .sidebar::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary-color);
+        background: var(--sidebar-scrollbar-thumb-hover);
     }
 
     /* Responsive */
@@ -160,7 +192,7 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
 
         .sidebar.active {
             transform: translateX(0);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--sidebar-shadow);
         }
     }
 </style>
@@ -275,4 +307,4 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
             overlay.style.display = 'none';
         }
     });
-</script> 
+</script>

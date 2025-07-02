@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 if (empty($error_message)) {
-                    $filename = time() . '_' . basename($_FILES['photo_passport']['name]);
+                    $filename = time() . '_' . basename($_FILES['photo_passport']['name']);
                     $photo_path = $upload_dir . $filename;
 
                     if (!move_uploaded_file($_FILES['photo_passport']['tmp_name'], $photo_path)) {
