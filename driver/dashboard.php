@@ -139,7 +139,7 @@ function getStatusBadgeClass($status) {
     <title>Driver Dashboard - Pro-Drivers</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+      <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
@@ -168,6 +168,18 @@ function getStatusBadgeClass($status) {
 
         <!-- Statistics Grid -->
         <div class="stats-grid">
+    
+            <div class="stat-card fade-in-up" style="animation-delay: 0.4s;">
+                <div class="stat-header">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                        <i class="fas fa-naira-sign"></i>
+                    </div>
+                </div>
+                <div class="stat-value"><i class="fas fa-naira-sign"></i><?= number_format($stats['total_earnings'], 2) ?></div>
+                <div class="stat-label">Total Earnings</div>
+            </div>
+
+
             <div class="stat-card fade-in-up" style="animation-delay: 0.1s;">
                 <div class="stat-header">
                     <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
@@ -198,15 +210,6 @@ function getStatusBadgeClass($status) {
                 <div class="stat-label">Average Rating</div>
             </div>
 
-            <div class="stat-card fade-in-up" style="animation-delay: 0.4s;">
-                <div class="stat-header">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                </div>
-                <div class="stat-value">$<?= number_format($stats['total_earnings'], 2) ?></div>
-                <div class="stat-label">Total Earnings</div>
-            </div>
         </div>
 
         <!-- Content Grid -->

@@ -28,25 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $reset_url = " ?token=$reset_token";
 
-            $mail = new PHPMailer(true);
             try {
-                $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = 'israelbabs59@gmail.com';
-                $mail->Password = 'uenb rrvr lyrl rzje';
-                $mail->SMTPSecure = 'tls';
-                $mail->Port = 587;
-
-                $mail->setFrom('yourgmail@gmail.com', 'Pro-Drivers');
-                $mail->addAddress($email);
-
-                $mail->isHTML(true);
-                $mail->Subject = 'Reset your password';
-                $mail->Body = "Hi {$user['first_name']},<br>Click <a href='$reset_url'>here</a> to reset your password. This link will expire in 1 hour.";
-                $mail->AltBody = "Reset your password: $reset_url";
-
-                $mail->send();
+                require_once 'include/SecureMailer.php';
+                $mailer = new SecureMailer();
+                $mailer->sendPasswordResetEmail($email, $user['first_name'], $reset_url);
                 $_SESSION['success_message'] = "Check your email for the password reset link.";
                 header("Location: forgot-password.php");
                 exit;

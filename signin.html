@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="signin">
+        <div class="signin-container">
+            <h2>Sign in to <span style="color: rgb(10, 138, 138);">ProDrivers!</span></h2>
+            <p>Enter your details below</p>
+            <form action="post" class="signin-form">
+                <div class="signin-label-container">
+                    <label for="signin-email">Email</label>
+                    <input type="email" name="email" id="signin-email" required>
+                </div>
+                <div class="signin-label-container">
+                    <div class="signin-label-link">
+                        <label for="signin-password">Password</label>
+                        <a href="">Forgot Password?</a>
+                    </div>
+                    <input type="password" name="password" id="signin-password" required>
+                </div>
+                <div class="signin-label-checkbox">
+                    <input type="checkbox" name="checkbox" id="signin-checkbox">
+                    <label for="signin-checkbox">Remember me</label>
+                </div>
+                <button>Sign In</button>
+            </form>
+            <div class="signin-no-account-container">
+                <p>Don't have an account? <a href="./signup.html">Create an Account</a></p>
+            </div>
+        </div>
+        </div>
+</body>
+</html>

@@ -1,14 +1,30 @@
-# Configuration files
-config.php
-
-# Environment files
+# Environment variables
 .env
-.env.*
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
 
 # IDE files
 .vscode/
 .idea/
 
-# OS files
+# OS generated files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Uploaded files (if needed)
+uploads/documents/
+uploads/profile-picture/
+uploads/photos/
+
+# Composer
+vendor/
+composer.lock
+composer.phar
+
+# Node modules (if any)
+node_modules/ 

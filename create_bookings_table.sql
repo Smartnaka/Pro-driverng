@@ -15,6 +15,8 @@ CREATE TABLE bookings (
     trip_purpose VARCHAR(50) NOT NULL,
     additional_notes TEXT,
     status ENUM('pending', 'accepted', 'rejected', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+    amount DECIMAL(10,2) NOT NULL,
+    reference VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE CASCADE,

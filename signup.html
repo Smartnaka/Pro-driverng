@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="signup">
+        <div class="signup-container">
+            <h2>Register</h2>
+            <!-- <p>Sign up to create your <span style="color: rgb(10, 138, 138);">ProDrivers</span> account</p> -->
+            <form action="post" class="signup-form">
+                <div class="signup-label-container">
+                    <label for="signup-email">First Name:</label>
+                    <input type="text" name="firstName" id="signup-first-name" required>
+                </div>
+                <div class="signup-label-container">
+                    <label for="signup-last-name">Last Name:</label>
+                    <input type="text" name="lastName" id="signup-last-name" required>
+                </div>
+                <div class="signup-label-container">
+                    <label for="signup-email">Email:</label>
+                    <input type="email" name="email" id="signup-email" required>
+                </div>
+                <div class="signup-label-container">
+                    <label for="signup-mobile-number">Mobile Number:</label>
+                    <input type="tel" name="mobileNumber" id="signup-mobile-number" required>
+                </div>
+                <div class="signup-label-container">
+                    <label for="signup-password">Password:</label>
+                    <input type="password" name="password" id="signup-password" required>
+                </div>
+                <div class="signup-label-checkbox">
+                    <input type="checkbox" name="checkbox" id="signup-checkbox">
+                    <label for="signup-checkbox">I agree to <a href="" style="color: rgb(10, 138, 138); text-decoration: none;">Terms of services</a href=""></label>
+                </div>
+                <button>Sign up</button>
+            </form>
+            <div class="signup-no-account-container">
+                <p>Already have an account? <a href="./signin.html">Sign in</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

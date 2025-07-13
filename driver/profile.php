@@ -48,7 +48,7 @@ $profile_picture = $driver['profile_picture'] ?? '../images/default-avatar.png';
                 Edit Profile
             </a>
             <img src="<?= htmlspecialchars($profile_picture) ?>" alt="Profile Picture" class="profile-picture">
-            <div class="profile-name"><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></div>
+            <div class="profile-name text-white"><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></div>
             <div class="profile-status">
                 <?php if ($driver['is_verified']): ?>
                     <span class="badge-verified">✓ Verified Driver</span>

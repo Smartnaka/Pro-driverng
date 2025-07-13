@@ -7,18 +7,21 @@ require_once __DIR__ . '/../vendor/autoload.php';
 function send_welcome_email($email, $first_name) {
     $mail = new PHPMailer(true);
     try {
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
-        $mail->SMTPAuth = true;
-        $mail->Username = 'israelbabs59@gmail.com';
-        $mail->Password = 'uenb rrvr lyrl rzje'; // App password
-        $mail->SMTPSecure = 'tls';
-        $mail->Port = 587;
+        //Server settings
+        $mail->isSMTP();                                            //Send using SMTP
+        $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
+        $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
+        $mail->Username   = 'israelbabs59@gmail.com';                     //SMTP username
+        $mail->Password   = 'mrrw ofmj uwnv bjnm';                               //SMTP password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;            //Enable implicit TLS encryption
+        $mail->Port       = 587;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
-        $mail->setFrom('no-reply@prodrivers.com', 'Pro-Drivers');
+        //Recipients
+        $mail->setFrom('prodrivers@gmail.com', 'PRODRIVERS');
         $mail->addAddress($email, $first_name);
 
-        $mail->isHTML(true);
+        //Content
+        $mail->isHTML(true);                                  //Set email format to HTML
         $mail->Subject = '🎉 Driver Registration Successful - Welcome to Pro-Drivers!';
         $mail->Body = "
             <h2>Hello {$first_name},</h2>

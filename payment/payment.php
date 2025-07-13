@@ -8,7 +8,7 @@ ini_set('display_errors', 1);
 
 // Redirect if user is not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
 
@@ -34,11 +34,11 @@ if ($driver_id) {
     $result = $stmt->get_result();
     $driver = $result->fetch_assoc();
     if (!$driver) {
-        echo '<div style="margin:2rem; color:red; font-weight:bold;">Invalid driver selected. <a href="book-driver.php">Go back</a></div>';
+        echo '<div style="margin:2rem; color:red; font-weight:bold;">Invalid driver selected. <a href="../book-driver.php">Go back</a></div>';
         exit();
     }
 } else {
-    echo '<div style="margin:2rem; color:red; font-weight:bold;">No driver selected. <a href="book-driver.php">Go back</a></div>';
+    echo '<div style="margin:2rem; color:red; font-weight:bold;">No driver selected. <a href="../book-driver.php">Go back</a></div>';
     exit();
 }
 
@@ -46,7 +46,22 @@ if ($driver_id) {
 $reference = 'PD_' . time() . '_' . uniqid();
 
 // Store all booking details in session for later use
-if (isset($_SESSION['pending_booking'])) {
+if (isset($_SESSION['pending_booking']) && !empty($_SESSION['pending_booking'])) {
+    // Validate that all required fields are present
+    $required_fields = ['pickup_location', 'dropoff_location', 'pickup_date', 'pickup_time', 'duration_days', 'vehicle_type', 'trip_purpose'];
+    $missing_fields = [];
+    
+    foreach ($required_fields as $field) {
+        if (!isset($_SESSION['pending_booking'][$field]) || empty($_SESSION['pending_booking'][$field])) {
+            $missing_fields[] = $field;
+        }
+    }
+    
+    if (!empty($missing_fields)) {
+        echo '<div style="margin:2rem; color:red; font-weight:bold;">Missing required booking information: ' . implode(', ', $missing_fields) . '. <a href="../booking.php?driver_id=' . $driver_id . '">Please complete your booking</a></div>';
+        exit();
+    }
+    
     $_SESSION['booking_details'] = array_merge(
         $_SESSION['pending_booking'],
         [
@@ -55,12 +70,9 @@ if (isset($_SESSION['pending_booking'])) {
         ]
     );
 } else {
-    // fallback for direct access
-    $_SESSION['booking_details'] = [
-        'driver_id' => $driver_id,
-        'amount' => $amount,
-        'reference' => $reference
-    ];
+    // Redirect to booking page if no booking details are available
+    header("Location: ../booking.php?driver_id=" . $driver_id);
+    exit();
 }
 ?>
 <!DOCTYPE html>

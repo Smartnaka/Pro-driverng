@@ -85,9 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($stmt->execute()) {
                     $stmt->close();
 
-                    // Send welcome email
-                    require_once __DIR__ . '/send_welcome_email.php';
-                    send_welcome_email($email, $first_name);
+                    // Send welcome email using secure mailer
+                    try {
+                        require_once __DIR__ . '/../include/SecureMailer.php';
+                        $mailer = new SecureMailer();
+                        $mailer->sendDriverWelcomeEmail($email, $first_name);
+                    } catch (Exception $e) {
+                        error_log("Email Error: " . $e->getMessage());
+                    }
 
                     $_SESSION['success_message'] = "Driver account created successfully! Please log in.";
                     header("Location: ../driver/login.php");
@@ -347,7 +352,7 @@ if (isset($_SESSION['error_message'])) {
                             <div style="position: relative;">
                                 <input type="password" id="password" name="password" class="form-control" required style="min-height: 38px; padding-right: 2.5rem;">
                                 <span id="togglePassword" style="position: absolute; top: 50%; right: 0.75rem; transform: translateY(-50%); cursor: pointer; color: #003366; font-size: 1.1rem;">
-                                    <i class="fa fa-eye" id="eyeIcon"></i>
+                                    <i class="fa fa-eye" id="eyeIcon1"></i>
                                 </span>
                             </div>
                         </div>
@@ -405,16 +410,28 @@ if (isset($_SESSION['error_message'])) {
 
 <script>
 // Password visibility toggle
+function togglePasswordVisibility(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  
+  if (input && icon) {
+    const type = input.type === 'password' ? 'text' : 'password';
+    input.type = type;
+    icon.className = type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
+  }
+}
+
+// Add event listeners for password toggles
+document.addEventListener('DOMContentLoaded', function() {
 const togglePassword = document.getElementById('togglePassword');
-const passwordInput = document.getElementById('password');
-const eyeIcon = document.getElementById('eyeIcon');
-if (togglePassword && passwordInput && eyeIcon) {
-  togglePassword.addEventListener('click', function () {
-    const type = passwordInput.type === 'password' ? 'text' : 'password';
-    passwordInput.type = type;
-    eyeIcon.className = type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
+  
+  if (togglePassword) {
+    togglePassword.addEventListener('click', function() {
+      togglePasswordVisibility('password', 'eyeIcon1');
   });
 }
+  
+});
 </script>
 
 <!-- Replace SweetAlert CDN with local if available -->

@@ -345,12 +345,16 @@ $locations = [
     <title>Edit Profile</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link rel="stylesheet" href="../assets/css/driver-theme.css">
+      <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../assets/css/drier-theme.css">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f8f9fa;  
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
             overflow-x: hidden;
         }
@@ -526,20 +530,8 @@ $locations = [
 </head>
 <body>
 
-<!-- Mobile Navigation -->
-<nav class="mobile-nav d-md-none">
-    <button class="hamburger-btn" onclick="toggleSidebar()">
-        <i class="bi bi-list"></i>
-        <span class="d-none d-sm-inline">Menu</span>
-    </button>
-    <span class="fw-bold">Edit Profile</span>
-    <div style="width: 2rem;"><!-- Empty div for flex spacing --></div>
-</nav>
 
-<!-- Mobile Overlay -->
-<div class="mobile-overlay" onclick="toggleSidebar()"></div>
-
-<?php include 'sidebar.php'; ?>
+<?php include 'includes/sidebar.php'; ?>
 
 <div class="content">
     <div class="form-container">
