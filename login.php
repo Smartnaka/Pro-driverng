@@ -29,19 +29,19 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
   <title>Login - ProDrivers</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
+    <style>
     body { font-family: 'Inter', sans-serif; }
-  </style>
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
   <!-- Navbar -->
-  <nav class="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-8 py-5 bg-white border-b gap-3 sm:gap-0">
+  <nav class="flex items-center justify-between px-4 sm:px-8 py-5 bg-white border-b">
     <div class="flex items-center gap-2">
       <span class="block w-7 h-7 bg-blue-900 rounded-sm"></span>
       <span class="text-xl font-bold text-blue-900">ProDrivers</span>
-    </div>
+                </div>
     <!-- Hamburger for mobile -->
-    <div class="sm:hidden ml-auto">
+    <div class="sm:hidden">
       <button id="mobile-menu-btn" aria-label="Open menu" class="p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-900">
         <svg id="hamburger-icon" class="h-6 w-6 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -50,13 +50,13 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-    </div>
+                    </div>
     <!-- Desktop menu -->
     <div id="desktop-menu" class="hidden sm:flex flex-col sm:flex-row items-center gap-2 sm:gap-6 w-full sm:w-auto">
       <a href="driver/register.php" class="text-gray-700 hover:text-blue-900 transition text-sm sm:text-base">Become a Driver</a>
       <a href="help.php" class="text-gray-700 hover:text-blue-900 transition text-sm sm:text-base">Help</a>
       <a href="register.php" class="px-4 py-2 border border-blue-900 rounded-md text-blue-900 font-semibold hover:bg-blue-900 hover:text-white transition text-sm sm:text-base w-full sm:w-auto text-center">Sign Up</a>
-    </div>
+                </div>
     <!-- Mobile menu -->
     <div id="mobile-menu" class="sm:hidden fixed inset-0 z-40 bg-black bg-opacity-40 transition-opacity duration-200 hidden">
       <div class="absolute top-0 right-0 h-full w-3/4 max-w-xs bg-white shadow-lg flex flex-col justify-between animate-none transform translate-x-full transition-transform duration-300" id="mobile-menu-panel">
@@ -67,15 +67,15 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          </div>
+                </div>
           <nav class="flex flex-col gap-6 items-start px-6 mt-8">
             <a href="driver/register.php" class="text-gray-700 hover:text-blue-900 transition text-base">Become a Driver</a>
             <a href="help.php" class="text-gray-700 hover:text-blue-900 transition text-base">Help</a>
             <a href="register.php" class="px-4 py-2 border border-blue-900 rounded-md text-blue-900 font-semibold hover:bg-blue-900 hover:text-white transition text-base text-center w-full">Sign Up</a>
           </nav>
-        </div>
+            </div>
         <div class="h-8"></div>
-      </div>
+        </div>
     </div>
   </nav>
   <!-- Login Form -->
@@ -94,49 +94,57 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
           <label for="password" class="text-gray-700 font-medium text-sm sm:text-base">Password</label>
           <a href="forgot-password.php" class="text-blue-900 text-xs sm:text-sm hover:underline">Forgot Password?</a>
         </div>
-        <input type="password" id="password" name="password" required class="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm sm:text-base" />
+        <div class="relative">
+          <input type="password" id="password" name="password" required class="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm sm:text-base pr-10" />
+          <button type="button" id="togglePassword" tabindex="-1" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-900 focus:outline-none" aria-label="Toggle password visibility">
+            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.274.832-.67 1.613-1.17 2.318M15.54 15.54A8.963 8.963 0 0112 17c-4.477 0-8.268-2.943-9.542-7a9.014 9.014 0 012.042-3.338M9.88 9.88A3 3 0 0112 15a3 3 0 01-2.12-.88" />
+            </svg>
+          </button>
+        </div>
       </div>
       <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white font-semibold py-2 rounded-md mt-2 hover:bg-blue-800 transition text-sm sm:text-base">Login</button>
       <p class="text-center text-gray-600 mt-6 text-sm sm:text-base">Don't have an account? <a href="register.php" class="text-blue-900 font-semibold hover:underline">Sign Up</a></p>
     </form>
   </main>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const form = document.getElementById('login-form');
-      const submitBtn = document.getElementById('submit-btn');
-      const errorMessageDiv = document.getElementById('error-message');
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Signing in...';
-        errorMessageDiv.style.display = 'none';
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('login-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const errorMessageDiv = document.getElementById('error-message');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Signing in...';
+                errorMessageDiv.style.display = 'none';
         errorMessageDiv.classList.add('hidden');
-        const formData = new FormData(form);
-        fetch('api/login_handler.php', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            window.location.href = data.redirect_url;
-          } else {
-            errorMessageDiv.textContent = data.message;
-            errorMessageDiv.style.display = 'block';
+                const formData = new FormData(form);
+                fetch('api/login_handler.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        errorMessageDiv.textContent = data.message;
+                        errorMessageDiv.style.display = 'block';
             errorMessageDiv.classList.remove('hidden');
-            submitBtn.disabled = false;
+                        submitBtn.disabled = false;
             submitBtn.textContent = 'Login';
-          }
-        })
-        .catch(error => {
-          errorMessageDiv.textContent = 'An unexpected error occurred. Please try again.';
-          errorMessageDiv.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    errorMessageDiv.textContent = 'An unexpected error occurred. Please try again.';
+                    errorMessageDiv.style.display = 'block';
           errorMessageDiv.classList.remove('hidden');
-          submitBtn.disabled = false;
+                    submitBtn.disabled = false;
           submitBtn.textContent = 'Login';
+                });
+            });
         });
-      });
-    });
 
     // Hamburger menu logic
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -191,6 +199,21 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
         closeMenu();
       }
     });
-  </script>
+
+    // Password visibility toggle
+    const togglePasswordBtn = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    let passwordVisible = false;
+    if (togglePasswordBtn && passwordInput && eyeIcon) {
+      togglePasswordBtn.addEventListener('click', function() {
+        passwordVisible = !passwordVisible;
+        passwordInput.type = passwordVisible ? 'text' : 'password';
+        eyeIcon.innerHTML = passwordVisible
+          ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.014 9.014 0 012.042-3.338M6.423 6.423A8.963 8.963 0 0112 5c4.477 0 8.268 2.943 9.542 7a8.978 8.978 0 01-4.293 5.062M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />`
+          : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />\n<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.274.832-.67 1.613-1.17 2.318M15.54 15.54A8.963 8.963 0 0112 17c-4.477 0-8.268-2.943-9.542-7a9.014 9.014 0 012.042-3.338M9.88 9.88A3 3 0 0112 15a3 3 0 01-2.12-.88" />`;
+      });
+    }
+    </script>
 </body>
 </html>

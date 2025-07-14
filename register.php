@@ -90,362 +90,110 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Pro-Drivers</title>
-    <link rel="stylesheet" href="assets/css/user-theme.css">
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Register - ProDrivers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { inter: ['Inter', 'sans-serif'] },
+            colors: {
+              primary: '#0a2a52',
+              accent: '#0d6efd',
+              light: '#f8fafc',
+              dark: '#1e293b',
+            },
+          },
+        },
+      }
+    </script>
     <style>
-        body { 
-  min-height: 100vh; 
-  font-family: 'Inter', sans-serif; 
-  background: #fff;
-  margin: 0;
-  color: #333;
-}
-.signup { 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  min-height: 100vh; 
-}
-.signup-container { 
-  background: none; 
-  border-radius: 0; 
-  box-shadow: none; 
-  padding: 0; 
-  max-width: 400px; 
-  width: 100%; 
-  margin: 0 auto; 
-}
-.signup-form { 
-  margin-top: 0; 
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-.signup-form-row {
-  display: flex;
-  gap: 1rem;
-  width: 100%;
-}
-.signup-form-row .signup-label-container {
-  flex: 1;
-}
-.signup-label-container { 
-  margin-bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.signup-label-container label {
-  font-weight: 600;
-  color: #333;
-  font-size: 0.95rem;
-  margin-bottom: 0.3rem;
-}
-.signup-form input[type="text"],
-.signup-form input[type="email"],
-.signup-form input[type="tel"],
-.signup-form input[type="password"] {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  background: #fff;
-  transition: border 0.2s;
-  width: 100%;
-  box-sizing: border-box;
-  color: #333;
-}
-.signup-form input:focus {
-  border: 2px solid #003366;
-  outline: none;
-  background: #fff;
-}
-.signup-form input::placeholder {
-  color: #999;
-}
-.password-container {
-  position: relative;
-  width: 100%;
-}
-.password-toggle {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #666;
-  font-size: 16px;
-  padding: 0;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  pointer-events: auto;
-}
-.password-toggle:hover {
-  color: #003366;
-}
-.password-toggle:focus {
-  outline: none;
-}
-.password-container input[type="password"],
-.password-container input[type="text"] {
-  padding-right: 40px;
-}
-.signup-label-checkbox { 
-  display: flex; 
-  align-items: flex-start; 
-  gap: 0.5rem; 
-  margin: 1rem 0; 
-  font-size: 0.9rem;
-}
-.signup-label-checkbox input[type="checkbox"] {
-  margin-top: 0.2rem;
-}
-.signup-label-checkbox label {
-  font-weight: 400;
-  margin: 0;
-  color: #333;
-  line-height: 1.4;
-}
-.signup-form button { 
-  width: 100%; 
-  background: #003366; 
-  color: #fff; 
-  border: none; 
-  border-radius: 6px; 
-  padding: 0.9rem; 
-  font-weight: 600; 
-  font-size: 1rem; 
-  margin-top: 0.5rem; 
-  transition: background 0.2s;
-  cursor: pointer;
-}
-.signup-form button:hover {
-  background: #002244;
-}
-.signup-form button:disabled { 
-  background: #ccc; 
-  cursor: not-allowed; 
-}
-.signup-no-account-container { 
-  text-align: center; 
-  margin-top: 1.5rem; 
-  font-size: 0.95rem;
-  color: #666;
-}
-.signup-no-account-container a { 
-  color: #003366; 
-  text-decoration: none; 
-  font-weight: 600; 
-}
-.signup-no-account-container a:hover { 
-  color: #002244; 
-  text-decoration: underline; 
-}
-.error-message { 
-  background: #f8d7da; 
-  color: #721c24; 
-  border: 1px solid #f5c6cb; 
-  padding: 1rem; 
-  border-radius: 6px; 
-  margin-bottom: 1.5rem; 
-  display: block; 
-  text-align: center; 
-  font-size: 0.9rem;
-}
-.signup-container h2 {
-  text-align: center;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  font-size: 1.8rem;
-  color: #333;
-  letter-spacing: -0.5px;
-}
-@media (max-width: 600px) { 
-  .signup-container { 
-    padding: 1rem; 
-  }
-  .signup-form-row {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-}
-    </style>
-    <style>
-.signup-split {
-  display: flex;
-  min-height: 100vh;
-}
-.signup-split-left {
-  flex: 1;
-  background: var(--light-bg);
-  padding: 0;
-  height: 100vh;
-  min-width: 0;
-  min-height: 0;
-  position: relative;
-  overflow: hidden;
-}
-.signup-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  border-radius: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-.signup-image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: #fff;
-  padding: 2rem;
-  z-index: 2;
-}
-.signup-image-overlay h1 {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  color: #fff;
-}
-.signup-image-overlay p {
-  font-size: 1.2rem;
-  font-weight: 400;
-  max-width: 400px;
-  line-height: 1.6;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-  color: #fff;
-}
-.signup-split-right {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-}
-@media (max-width: 900px) {
-  .signup-split {
-    flex-direction: column;
-  }
-  .signup-split-left, .signup-split-right {
-    flex: unset;
-    width: 100%;
-    min-height: unset;
-  }
-  .signup-image {
-    height: 220px;
-    border-radius: 0;
-    position: static;
-  }
-  .signup-split-right {
-    padding: 1.5rem;
-  }
-}
-@media (max-width: 600px) { 
-  .signup-container { 
-    padding: 1rem; 
-  }
-  .signup-form-row {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  .signup-split-left {
-    display: none;
-  }
-  .signup-split-right {
-    flex: 1;
-    width: 100%;
-    padding: 2rem 1rem;
-  }
-}
+      body { font-family: 'Inter', sans-serif; }
+      .no-scroll { overflow: hidden; }
 </style>
 </head>
-<body>
-    <div class="signup-split">
-      <div class="signup-split-left">
-        <img src="images/driver7.jpg" alt="Driver" class="signup-image" />
-        <div class="signup-image-overlay">
-          <h1>Book Drivers Today</h1>
-          <p>Find reliable and professional drivers for all your transportation needs.</p>
+<body class="bg-light min-h-screen flex items-center justify-center">
+  <div class="w-full min-h-screen flex items-center justify-center py-8 px-2">
+    <div class="bg-white rounded-2xl shadow-xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden">
+      <!-- Left: Registration Form -->
+      <div class="w-full md:w-1/2 flex flex-col justify-center px-8 py-10">
+        <div class="flex items-center mb-8">
+          <svg class="w-8 h-8 text-accent mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="text-2xl font-bold text-primary">ProDrivers</span>
         </div>
-      </div>
-      <div class="signup-split-right">
-        <div class="signup-container">
-          <h2>Register</h2>
+        <h1 class="text-3xl md:text-3xl font-extrabold text-primary mb-2">Get Started in Minutes</h1>
+        <p class="text-gray-600 mb-6">Create your account and gain access to a network of professional, vetted drivers for your every need.</p>
           <?php if (!empty($error_message)): ?>
-          <div class="error-message">
+        <div class="bg-red-100 text-red-700 border border-red-200 rounded px-4 py-3 mb-4 text-sm">
             <?php echo htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8'); ?>
           </div>
           <?php endif; ?>
-          <form id="registerForm" class="signup-form" method="post" autocomplete="off" novalidate>
+        <form id="registerForm" class="space-y-4" method="post" autocomplete="off" novalidate>
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
-            <div class="signup-form-row">
-              <div class="signup-label-container">
-                <label for="signup-first-name">First Name</label>
-                <input type="text" name="first_name" id="signup-first-name" required value="<?php echo isset($_POST['first_name']) ? htmlspecialchars($_POST['first_name']) : ''; ?>">
+          <div class="flex gap-3">
+            <div class="w-1/2">
+              <label for="signup-first-name" class="block font-semibold mb-1">First Name</label>
+              <input type="text" name="first_name" id="signup-first-name" required placeholder="John" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent" value="<?php echo isset($_POST['first_name']) ? htmlspecialchars($_POST['first_name']) : ''; ?>">
               </div>
-              <div class="signup-label-container">
-                <label for="signup-last-name">Last Name</label>
-                <input type="text" name="last_name" id="signup-last-name" required value="<?php echo isset($_POST['last_name']) ? htmlspecialchars($_POST['last_name']) : ''; ?>">
-              </div>
+            <div class="w-1/2">
+              <label for="signup-last-name" class="block font-semibold mb-1">Last Name</label>
+              <input type="text" name="last_name" id="signup-last-name" required placeholder="Doe" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent" value="<?php echo isset($_POST['last_name']) ? htmlspecialchars($_POST['last_name']) : ''; ?>">
             </div>
-            <div class="signup-form-row">
-              <div class="signup-label-container">
-                <label for="signup-email">Email</label>
-                <input type="email" name="email" id="signup-email" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
               </div>
-              <div class="signup-label-container">
-                <label for="signup-mobile-number">Mobile Number</label>
-                <input type="tel" name="phone" id="signup-mobile-number" required value="<?php echo isset($_POST['phone']) ? htmlspecialchars($_POST['phone']) : ''; ?>">
+          <div class="flex gap-3">
+            <div class="w-1/2">
+              <label for="signup-email" class="block font-semibold mb-1">Email Address</label>
+              <input type="email" name="email" id="signup-email" required placeholder="you@example.com" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent" value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
               </div>
+            <div class="w-1/2">
+              <label for="signup-mobile-number" class="block font-semibold mb-1">Mobile Number</label>
+              <input type="tel" name="phone" id="signup-mobile-number" required placeholder="(555) 555-5555" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent" value="<?php echo isset($_POST['phone']) ? htmlspecialchars($_POST['phone']) : ''; ?>">
             </div>
-            <div class="signup-form-row">
-              <div class="signup-label-container">
-                <label for="signup-password">Password</label>
-                <div class="password-container" style="position: relative;">
-                  <input type="password" name="password" id="signup-password" required style="padding-right: 2.5rem;">
-                  <span class="password-toggle" id="togglePassword" onclick="togglePassword('signup-password', 'eyeIcon1')" style="position: absolute; top: 50%; right: 0.75rem; transform: translateY(-50%); cursor: pointer; color: #003366; font-size: 1.1rem;">
-                    <i class="fa fa-eye" id="eyeIcon1"></i>
+          </div>
+          <div class="flex gap-3">
+            <div class="w-1/2">
+              <label for="signup-password" class="block font-semibold mb-1">Password</label>
+              <div class="relative">
+                <input type="password" name="password" id="signup-password" required placeholder="••••••••" minlength="8" class="w-full border border-gray-300 rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-accent">
+                <button type="button" tabindex="-1" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-accent" onclick="togglePassword('signup-password', 'eyeIcon1')">
+                  <span id="eyeIcon1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </span>
-                </div>
+                  </button>
               </div>
-              <div class="signup-label-container">
-                <label for="signup-confirm-password">Confirm Password</label>
-                <div class="password-container" style="position: relative;">
-                  <input type="password" name="confirm_password" id="signup-confirm-password" required style="padding-right: 2.5rem;">
-                  <span class="password-toggle" id="toggleConfirmPassword" onclick="togglePassword('signup-confirm-password', 'eyeIcon2')" style="position: absolute; top: 50%; right: 0.75rem; transform: translateY(-50%); cursor: pointer; color: #003366; font-size: 1.1rem;">
-                    <i class="fa fa-eye" id="eyeIcon2"></i>
+              <span class="text-xs text-gray-500">Must be at least 8 characters long.</span>
+            </div>
+            <div class="w-1/2">
+              <label for="signup-confirm-password" class="block font-semibold mb-1">Confirm Password</label>
+              <div class="relative">
+                <input type="password" name="confirm_password" id="signup-confirm-password" required placeholder="••••••••" class="w-full border border-gray-300 rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-accent">
+                <button type="button" tabindex="-1" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-accent" onclick="togglePassword('signup-confirm-password', 'eyeIcon2')">
+                  <span id="eyeIcon2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </span>
-                </div>
+                  </button>
               </div>
             </div>
-            <div class="signup-label-checkbox">
-              <input type="checkbox" name="terms" id="signup-checkbox" required <?php if(isset($_POST['terms'])) echo 'checked'; ?>>
-              <label for="signup-checkbox">I agree to <a href="#" style="color: #003366; text-decoration: none;">Terms of service</a></label>
+          </div>
+          <div class="flex items-start mb-2">
+            <input type="checkbox" name="terms" id="signup-checkbox" required class="mt-1 mr-2">
+            <label for="signup-checkbox" class="text-sm text-gray-700">I agree to the <a href="#" class="text-accent font-semibold hover:underline">Terms of Service</a></label>
             </div>
-            <button type="submit" name="register">Create Account</button>
+          <button type="submit" name="register" class="w-full bg-primary hover:bg-accent text-white font-semibold rounded py-3 transition-colors">Create My Account</button>
           </form>
-          <div class="signup-no-account-container">
-            <p>Already have an account? <a href="login.php">Sign In</a></p>
+        <div class="text-center mt-4 text-sm text-gray-600">
+          Already have an account? <a href="login.php" class="text-accent font-semibold hover:underline">Log In</a>
+        </div>
+      </div>
+      <!-- Right: Image & Text -->
+      <div class="hidden md:flex w-1/2 relative items-stretch">
+        <img src="images/driver7.jpg" alt="Driver" class="object-cover w-full h-full" />
+        <div class="absolute inset-0 bg-black bg-opacity-40 flex flex-col justify-end p-8">
+          <div class="mb-8">
+            <h2 class="text-white text-2xl font-bold mb-2">Your Trusted Partner in Professional Driving</h2>
+            <p class="text-white text-base">Safety, reliability, and professionalism at your fingertips.</p>
+          </div>
           </div>
         </div>
       </div>
@@ -460,20 +208,22 @@ header("Content-Security-Policy: default-src 'self' http: https: data: 'unsafe-i
             const password = document.getElementById('signup-password');
             const confirmPassword = document.getElementById('signup-confirm-password');
             if (password.value !== confirmPassword.value) {
-                confirmPassword.classList.add('is-invalid');
+        confirmPassword.classList.add('border-red-500', 'ring-2', 'ring-red-300');
                 e.preventDefault();
             } else {
-                confirmPassword.classList.remove('is-invalid');
+        confirmPassword.classList.remove('border-red-500', 'ring-2', 'ring-red-300');
             }
         });
         // Password toggle functionality
-        function togglePassword(inputId, iconId) {
+    function togglePassword(inputId, iconId) {
             const input = document.getElementById(inputId);
-          const icon = document.getElementById(iconId);
-          if (input && icon) {
-            const type = input.type === 'password' ? 'text' : 'password';
-            input.type = type;
-            icon.className = type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
+      const iconSpan = document.getElementById(iconId);
+      if (input && iconSpan) {
+        const type = input.type === 'password' ? 'text' : 'password';
+        input.type = type;
+        iconSpan.innerHTML = type === 'password'
+          ? `<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\" /><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z\" /></svg>`
+          : `<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95m3.362-2.7A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0z\" /><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 3l18 18\" /></svg>`;
             }
         }
     </script>
