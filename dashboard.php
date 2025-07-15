@@ -202,7 +202,9 @@ $recent_bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
           <div class="bg-blue-500 h-3 rounded-full transition-all duration-300" style="width: <?php echo $percent; ?>%"></div>
         </div>
         <ul class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-          <?php foreach ($progress_steps as $label => [$done, $link]): ?>
+          <?php foreach (
+            $progress_steps as $label => [$done, $link]
+          ): ?>
             <li class="flex items-center gap-2 text-sm <?php echo $done ? 'text-green-600' : 'text-gray-500'; ?>">
               <?php if ($done): ?>
                 <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -216,6 +218,76 @@ $recent_bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             </li>
           <?php endforeach; ?>
         </ul>
+      </div>
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl p-6 flex flex-col items-start shadow">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-2xl font-bold text-gray-900"><?php echo $total_bookings; ?></span>
+            <span class="ml-2 bg-blue-100 text-blue-600 rounded-full p-2"><i class="fa fa-archive"></i></span>
+          </div>
+          <div class="text-gray-500 text-sm font-medium">Total Bookings</div>
+        </div>
+        <div class="bg-white rounded-xl p-6 flex flex-col items-start shadow">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-2xl font-bold text-gray-900"><?php echo $active_bookings; ?></span>
+            <span class="ml-2 bg-green-100 text-green-600 rounded-full p-2"><i class="fa fa-hourglass-half"></i></span>
+          </div>
+          <div class="text-gray-500 text-sm font-medium">Active Bookings</div>
+        </div>
+        <div class="bg-white rounded-xl p-6 flex flex-col items-start shadow">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-2xl font-bold text-gray-900"><?php echo $cancelled_bookings; ?></span>
+            <span class="ml-2 bg-red-100 text-red-600 rounded-full p-2"><i class="fa fa-times-circle"></i></span>
+          </div>
+          <div class="text-gray-500 text-sm font-medium">Cancelled Bookings</div>
+        </div>
+        <div class="bg-white rounded-xl p-6 flex flex-col items-start shadow">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-2xl font-bold text-gray-900"><?php echo $completed_bookings; ?></span>
+            <span class="ml-2 bg-indigo-100 text-indigo-600 rounded-full p-2"><i class="fa fa-check-circle"></i></span>
+          </div>
+          <div class="text-gray-500 text-sm font-medium">Completed Bookings</div>
+        </div>
+      </div>
+      <!-- Assigned Driver Widget -->
+      <?php
+      // If $upcoming_booking has a driver, use it. Otherwise, fetch the most recent booking with a driver assigned and status in ('in_progress', 'accepted', 'pending')
+      $assigned_driver = null;
+      if (!empty($upcoming_booking) && !empty($upcoming_booking['driver_first_name'])) {
+        $assigned_driver = $upcoming_booking;
+      } else {
+        $stmt = $conn->prepare("SELECT b.*, d.first_name as driver_first_name, d.last_name as driver_last_name, d.profile_picture as driver_profile_picture, d.phone as driver_phone FROM bookings b LEFT JOIN drivers d ON b.driver_id = d.id WHERE b.user_id = ? AND b.driver_id IS NOT NULL AND b.status IN ('in_progress', 'accepted', 'pending') ORDER BY b.pickup_date DESC, b.pickup_time DESC LIMIT 1");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        if (!empty($row['driver_first_name'])) {
+          $assigned_driver = $row;
+        }
+      }
+      ?>
+      <div class="bg-white rounded-xl p-6 mb-8 shadow flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="flex-1">
+          <h2 class="text-lg font-semibold text-gray-800 mb-2">Assigned Driver</h2>
+          <?php if (!empty($assigned_driver['driver_first_name'])): ?>
+            <div class="text-gray-700 font-medium mb-1">
+              <?php echo htmlspecialchars($assigned_driver['driver_first_name'] . ' ' . $assigned_driver['driver_last_name']); ?>
+            </div>
+            <div class="text-gray-500 mb-4">
+              Phone: <a href="tel:<?php echo htmlspecialchars($assigned_driver['driver_phone']); ?>" class="text-blue-700 hover:underline"><?php echo htmlspecialchars($assigned_driver['driver_phone']); ?></a>
+            </div>
+            <a href="tel:<?php echo htmlspecialchars($assigned_driver['driver_phone']); ?>" class="inline-block bg-green-600 text-white px-5 py-2 rounded-lg font-semibold shadow hover:bg-green-700 transition"><i class="fa fa-phone mr-2"></i>Contact Driver</a>
+          <?php else: ?>
+            <div class="text-gray-500">No driver is currently assigned to your bookings.</div>
+          <?php endif; ?>
+        </div>
+        <div class="flex-shrink-0">
+          <?php if (!empty($assigned_driver['driver_profile_picture'])): ?>
+            <img src="<?php echo htmlspecialchars($assigned_driver['driver_profile_picture']); ?>" alt="Driver" class="w-40 h-32 rounded-lg object-cover bg-gray-100">
+          <?php else: ?>
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=driver" alt="Driver" class="w-40 h-32 rounded-lg object-cover bg-gray-100">
+          <?php endif; ?>
+        </div>
       </div>
       <!-- Upcoming Booking Card -->
       <?php if ($upcoming_booking): ?>
@@ -259,37 +331,6 @@ $recent_bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
       </div>
       <?php endif; ?>
 
-        <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white rounded-xl p-6 flex flex-col items-start shadow">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-2xl font-bold text-gray-900"><?php echo $total_bookings; ?></span>
-            <span class="ml-2 bg-blue-100 text-blue-600 rounded-full p-2"><i class="fa fa-archive"></i></span>
-          </div>
-          <div class="text-gray-500 text-sm font-medium">Total Bookings</div>
-                </div>
-        <div class="bg-white rounded-xl p-6 flex flex-col items-start shadow">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-2xl font-bold text-gray-900"><?php echo $active_bookings; ?></span>
-            <span class="ml-2 bg-green-100 text-green-600 rounded-full p-2"><i class="fa fa-hourglass-half"></i></span>
-            </div>
-          <div class="text-gray-500 text-sm font-medium">Active Bookings</div>
-                </div>
-        <div class="bg-white rounded-xl p-6 flex flex-col items-start shadow">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-2xl font-bold text-gray-900"><?php echo $cancelled_bookings; ?></span>
-            <span class="ml-2 bg-red-100 text-red-600 rounded-full p-2"><i class="fa fa-times-circle"></i></span>
-            </div>
-          <div class="text-gray-500 text-sm font-medium">Cancelled Bookings</div>
-                </div>
-        <div class="bg-white rounded-xl p-6 flex flex-col items-start shadow">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-2xl font-bold text-gray-900"><?php echo $completed_bookings; ?></span>
-            <span class="ml-2 bg-indigo-100 text-indigo-600 rounded-full p-2"><i class="fa fa-check-circle"></i></span>
-            </div>
-          <div class="text-gray-500 text-sm font-medium">Completed Bookings</div>
-        </div>
-      </div>
       <!-- Recent Bookings Widget -->
       <div class="bg-white rounded-xl p-6 mt-8 shadow">
         <h2 class="text-lg font-semibold mb-4 text-gray-800">Recent Bookings</h2>

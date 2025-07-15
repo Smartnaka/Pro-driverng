@@ -8,7 +8,11 @@
   <link rel="icon" href="images/driver.webp" type="image/webp">
   <link crossorigin href="https://fonts.gstatic.com/" rel="preconnect"/>
   <link as="style" href="https://fonts.googleapis.com/css2?display=swap&family=Inter:wght@400;500;700;900&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+  <!-- Tailwind Fallback: Use local CSS if CDN fails -->
+  <link rel="stylesheet" href="assets/css/tailwind.min.css">
+  <!-- Tailwind CDN (preferred) -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <noscript><style>.sm\:hidden { display: none !important; }</style><div style="background: #ffc; color: #333; padding: 8px; text-align: center;">JavaScript is required for full site styling. Please enable JavaScript or use a modern browser.</div></noscript>
   <style type="text/tailwindcss">
         :root {
             --primary-color: #003366;
@@ -26,21 +30,25 @@
 <body class="bg-[var(--background-color)] text-[var(--text-primary)]">
 <div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden">
 <div class="layout-container flex h-full grow flex-col">
-<header class="sticky top-0 z-10 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f5] bg-white px-10 py-4 shadow-sm">
+<header class="sticky top-0 z-10 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f5] bg-white px-4 sm:px-10 py-4 shadow-sm">
 <div class="flex items-center gap-4 text-[var(--primary-color)]">
 <svg class="h-8 w-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
 <path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
 </svg>
 <h2 class="text-2xl font-bold tracking-tight">ProDrivers</h2>
             </div>
-<div class="flex flex-1 justify-end gap-8">
-<nav class="flex items-center gap-9">
+  <!-- Hamburger for mobile -->
+  <button id="mobile-menu-toggle" class="sm:hidden p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" aria-label="Open Menu">
+    <svg class="h-6 w-6 text-[var(--primary-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <div id="navbar-links" class="hidden sm:flex flex-1 justify-end gap-8">
+    <nav class="flex flex-col sm:flex-row items-center gap-4 sm:gap-9 bg-white sm:bg-transparent absolute sm:static top-16 left-0 w-full sm:w-auto shadow sm:shadow-none z-20 p-4 sm:p-0" style="display:none;">
 <a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="#about">About</a>
 <a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="#services">Services</a>
 <a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="#pricing">Pricing</a>
 <a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="#contact">Contact</a>
     </nav>
-<div class="flex gap-3">
+    <div class="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
 <a href="register.php" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-md h-11 px-5 bg-[var(--primary-color)] text-white text-base font-semibold tracking-wide shadow-sm hover:bg-opacity-90 transition-all">
 <span class="truncate">Sign Up</span>
 </a>
@@ -50,16 +58,28 @@
                     </div>
                 </div>
 </header>
+<script>
+  // Mobile menu toggle
+  const toggleBtn = document.getElementById('mobile-menu-toggle');
+  const navLinks = document.getElementById('navbar-links');
+  if (toggleBtn && navLinks) {
+    toggleBtn.addEventListener('click', () => {
+      navLinks.classList.toggle('hidden');
+      const nav = navLinks.querySelector('nav');
+      if (nav) nav.style.display = navLinks.classList.contains('hidden') ? 'none' : 'block';
+    });
+  }
+</script>
 <main class="flex flex-1 justify-center py-5">
 <div class="layout-content-container flex flex-col max-w-6xl flex-1">
-<section class="relative rounded-xl overflow-hidden min-h-[520px] flex flex-col items-start justify-end p-12" style='background-image: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%), url("images/driver2.jpg"); background-size: cover; background-position: center;'>
+<section class="relative rounded-xl overflow-hidden min-h-[320px] sm:min-h-[520px] flex flex-col items-start justify-end p-4 sm:p-12" style='background-image: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%), url("images/driver2.jpg"); background-size: cover; background-position: center;'>
 <div class="flex flex-col gap-4 text-left max-w-2xl">
-<h1 class="text-white text-5xl font-bold leading-tight tracking-tighter">Your Personal Driver, On Demand</h1>
-<p class="text-white text-lg font-light leading-relaxed">
+<h1 class="text-white text-3xl sm:text-5xl font-bold leading-tight tracking-tighter">Your Personal Driver, On Demand</h1>
+<p class="text-white text-base sm:text-lg font-light leading-relaxed">
 Experience the convenience and luxury of having a professional driver at your service. Book rides for any occasion, from airport transfers to corporate events.
 </p>
                 </div>
-<div class="flex-wrap gap-4 flex mt-8">
+<div class="flex flex-col sm:flex-row flex-wrap gap-4 mt-8 w-full sm:w-auto">
 <a href="register.php" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-md h-12 px-6 bg-[var(--primary-color)] text-white text-base font-semibold tracking-wide shadow-lg hover:bg-opacity-90 transition-all transform hover:-translate-y-1">
 <span class="truncate">Book a Ride</span>
 </a>
@@ -79,10 +99,10 @@ Experience the convenience and luxury of having a professional driver at your se
 </section>
 
 <!-- Services Section -->
-<section id="services" class="px-4 py-20 bg-[var(--secondary-color)] border-b border-gray-100">
+<section id="services" class="px-2 sm:px-4 py-10 sm:py-20 bg-[var(--secondary-color)] border-b border-gray-100">
   <div class="max-w-5xl mx-auto text-center">
-    <h2 class="text-4xl font-bold mb-4 text-[var(--primary-color)]">Our Services</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
+    <h2 class="text-2xl sm:text-4xl font-bold mb-4 text-[var(--primary-color)]">Our Services</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-6 sm:mt-10">
       <div class="bg-white rounded-xl shadow p-8 flex flex-col items-center">
         <svg class="h-10 w-10 text-[var(--primary-color)] mb-4" fill="none" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="4" fill="none"/><path d="M16 32l8-8 8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <h3 class="font-semibold text-lg mb-2">Airport Transfers</h3>
@@ -103,11 +123,11 @@ Experience the convenience and luxury of having a professional driver at your se
 </section>
 
 <!-- Pricing Section -->
-<section id="pricing" class="px-4 py-20 bg-white border-b border-gray-100">
+<section id="pricing" class="px-2 sm:px-4 py-10 sm:py-20 bg-white border-b border-gray-100">
   <div class="max-w-4xl mx-auto text-center">
-    <h2 class="text-4xl font-bold mb-4 text-[var(--primary-color)]">Pricing</h2>
-    <p class="text-lg text-[var(--text-secondary)] mb-8">Transparent, competitive rates. No hidden fees. Contact us for custom packages or long-term contracts.</p>
-    <div class="flex flex-col md:flex-row justify-center gap-8">
+    <h2 class="text-2xl sm:text-4xl font-bold mb-4 text-[var(--primary-color)]">Pricing</h2>
+    <p class="text-base sm:text-lg text-[var(--text-secondary)] mb-8">Transparent, competitive rates. No hidden fees. Contact us for custom packages or long-term contracts.</p>
+    <div class="flex flex-col md:flex-row justify-center gap-6 sm:gap-8">
       <div class="bg-[var(--secondary-color)] rounded-xl shadow p-8 flex-1">
         <h3 class="font-semibold text-xl mb-2">Airport Transfer</h3>
         <p class="text-3xl font-bold text-[var(--primary-color)] mb-2">₦8,000<span class="text-base font-normal">/trip</span></p>
@@ -142,10 +162,10 @@ Experience the convenience and luxury of having a professional driver at your se
         </div>
     </section>
 
-<section id="testimonials" class="px-4 py-20">
-<h2 class="text-center text-[var(--text-primary)] text-4xl font-bold tracking-tight mb-12">What Our Clients Say</h2>
+<section id="testimonials" class="px-2 sm:px-4 py-10 sm:py-20">
+<h2 class="text-center text-[var(--text-primary)] text-2xl sm:text-4xl font-bold tracking-tight mb-8 sm:mb-12">What Our Clients Say</h2>
 <div class="flex overflow-x-auto snap-x snap-mandatory [-ms-scrollbar-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-8">
-<div class="flex items-stretch p-4 gap-8">
+<div class="flex items-stretch p-2 sm:p-4 gap-4 sm:gap-8">
 <div class="flex flex-col gap-6 rounded-xl min-w-80 w-80 bg-white p-8 shadow-lg snap-center">
 <div class="flex-1">
 <p class="text-[var(--text-secondary)] text-base italic">"ProDrivers made my business trips in Lagos effortless. The drivers are always on time, courteous, and the cars are spotless. Highly recommended!"</p>
@@ -202,11 +222,11 @@ Experience the convenience and luxury of having a professional driver at your se
 </main>
 
 <!-- Contact Section -->
-<section id="contact" class="px-4 py-20 bg-[var(--secondary-color)]">
+<section id="contact" class="px-2 sm:px-4 py-10 sm:py-20 bg-[var(--secondary-color)]">
   <div class="max-w-3xl mx-auto text-center">
-    <h2 class="text-4xl font-bold mb-4 text-[var(--primary-color)]">Contact Us</h2>
-    <p class="text-lg text-[var(--text-secondary)] mb-8">Have questions or need help? Reach out to our team and we’ll get back to you promptly.</p>
-    <form class="grid grid-cols-1 gap-6 max-w-xl mx-auto" action="contact-us.php" method="POST">
+    <h2 class="text-2xl sm:text-4xl font-bold mb-4 text-[var(--primary-color)]">Contact Us</h2>
+    <p class="text-base sm:text-lg text-[var(--text-secondary)] mb-8">Have questions or need help? Reach out to our team and we’ll get back to you promptly.</p>
+    <form class="grid grid-cols-1 gap-4 sm:gap-6 max-w-xl mx-auto" action="contact-us.php" method="POST">
       <input type="text" name="name" placeholder="Your Name" required class="rounded border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
       <input type="email" name="email" placeholder="Your Email" required class="rounded border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
       <textarea name="message" placeholder="Your Message" required rows="4" class="rounded border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]"></textarea>
@@ -221,8 +241,8 @@ Experience the convenience and luxury of having a professional driver at your se
 </section>
 
 <footer class="bg-[var(--secondary-color)]">
-<div class="max-w-6xl mx-auto px-5 py-10">
-<div class="flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="max-w-6xl mx-auto px-2 sm:px-5 py-8 sm:py-10">
+<div class="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
 <div class="flex items-center gap-4 text-[var(--primary-color)]">
 <svg class="h-8 w-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
 <path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
@@ -263,8 +283,8 @@ Experience the convenience and luxury of having a professional driver at your se
 </a>
                 </div>
             </div>
-<div class="mt-8 border-t border-gray-300 pt-6 text-center">
-<p class="text-[var(--text-secondary)] text-sm">© 2024 ProDrivers. All rights reserved.</p>
+<div class="mt-8 border-t border-gray-300 pt-4 sm:pt-6 text-center">
+<p class="text-[var(--text-secondary)] text-xs sm:text-sm">© 2024 ProDrivers. All rights reserved.</p>
             </div>
         </div>
     </footer>

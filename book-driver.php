@@ -86,460 +86,131 @@ if (isset($_GET['debug'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book a Driver - Pro-Drivers</title>
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <title>Book a Driver - ProDrivers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1030;
-        }
-
-        .overlay.active {
-            display: block;
-        }
-
-        .content {
-            margin-left: 280px;
-            padding: 1.5rem;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            color: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
-        }
-
-        .page-header h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .page-header p {
-            font-size: 1rem;
-            opacity: 0.9;
-            margin: 0;
-        }
-
-        .booking-section {
-            background: white;
-            border-radius: 16px;
-            padding: 1.25rem;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .section-title i {
-            color: #2563eb;
-        }
-
-        .driver-card {
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            height: 100%;
-            background: #ffffff;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .driver-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #2563eb, #3b82f6);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .driver-card:hover {
-            border-color: #2563eb;
-            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12);
-            transform: translateY(-4px);
-        }
-
-        .driver-card:hover::before {
-            opacity: 1;
-        }
-
-        .driver-avatar {
-            width: 90px;
-            height: 110px;
-            border-radius: 12px;
-            object-fit: cover;
-            border: 2px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-        }
-
-        .driver-card:hover .driver-avatar {
-            transform: scale(1.03);
-        }
-
-        .driver-profile {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .driver-info {
-            flex: 1;
-            padding-top: 0.5rem;
-        }
-
-        .driver-info h5 {
-            margin: 0 0 0.5rem 0;
-            color: #1e293b;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .driver-meta {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-
-        .driver-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            background: #f8fafc;
-            padding: 0.35rem 0.5rem;
-            border-radius: 8px;
-        }
-
-        .driver-meta-item i {
-            color: #2563eb;
-        }
-
-        .driver-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 0.75rem;
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #64748b;
-            font-size: 0.9rem;
-            padding: 0.5rem;
-            border-radius: 8px;
-            background: #f8fafc;
-        }
-
-        .detail-item:hover {
-            background: #f1f5f9;
-            transform: translateY(-2px);
-        }
-
-        .detail-item i {
-            font-size: 1.2rem;
-            color: #2563eb;
-        }
-
-        .driver-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.35rem 0.75rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            background-color: #eff6ff;
-            color: #2563eb;
-            margin-right: 0.5rem;
-        }
-
-        .driver-badge:hover {
-            background-color: #dbeafe;
-            transform: translateY(-2px);
-        }
-
-        .driver-badge i {
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .form-floating > label {
-            font-size: 0.9rem;
-        }
-
-        .form-control, .form-select {
-            border-radius: 8px;
-            padding: 0.75rem;
-            font-size: 0.9rem;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-        }
-
-        .select-btn {
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            margin-top: 1rem;
-        }
-
-        .select-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
-        }
-
-        .select-btn i {
-            font-size: 1.2rem;
-        }
-
-        .btn-primary {
-            padding: 0.75rem;
-            border-radius: 8px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                margin-left: 0;
-                padding: 1rem;
-            }
-
-            .page-header {
-                padding: 1.25rem;
-            }
-
-            .booking-section {
-                padding: 1rem;
-            }
-
-            .driver-profile {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-
-            .driver-meta {
-                justify-content: center;
-            }
-        }
+      body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
-    <!-- Include Sidebar -->
-    <?php include 'partials/sidebar.php'; ?>
-    
-    <!-- Overlay for mobile sidebar -->
-    <div class="overlay" onclick="toggleSidebar()"></div>
-
-    <!-- Mobile Navigation -->
-    <nav class="mobile-nav">
-        <button class="hamburger-btn" onclick="toggleSidebar()">
-            <i class="bi bi-list"></i>
-            <span class="d-none d-sm-inline">Menu</span>
-        </button>
-        <span class="fw-bold">Book a Driver</span>
-        <div style="width: 2rem;"><!-- Empty div for flex spacing --></div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="content">
-        <div class="page-header">
-            <h3 class="mb-0">Find a Driver</h3>
-            <p class="mb-0 opacity-75">Search and book professional drivers for your journey</p>
-        </div>
-
-        <!-- Search Filters -->
-        <div class="booking-section mb-4">
-            <form method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="location" name="location" 
-                               placeholder="Enter location" value="<?= htmlspecialchars($_GET['location'] ?? '') ?>">
-                        <label for="location"><i class="bi bi-geo-alt"></i> Location</label>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-floating">
-                        <select class="form-select" id="vehicle_type" name="vehicle_type">
-                            <option value="">All Vehicles</option>
-                            <option value="Car" <?= (isset($_GET['vehicle_type']) && $_GET['vehicle_type'] == 'Car') ? 'selected' : '' ?>>Car</option>
-                            <option value="Van" <?= (isset($_GET['vehicle_type']) && $_GET['vehicle_type'] == 'Van') ? 'selected' : '' ?>>Van</option>
-                            <option value="Truck" <?= (isset($_GET['vehicle_type']) && $_GET['vehicle_type'] == 'Truck') ? 'selected' : '' ?>>Truck</option>
-                        </select>
-                        <label for="vehicle_type"><i class="bi bi-car-front"></i> Vehicle Type</label>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-floating">
-                        <select class="form-select" id="experience" name="experience">
-                            <option value="">Any Experience</option>
-                            <option value="1" <?= (isset($_GET['experience']) && $_GET['experience'] == '1') ? 'selected' : '' ?>>1+ years</option>
-                            <option value="3" <?= (isset($_GET['experience']) && $_GET['experience'] == '3') ? 'selected' : '' ?>>3+ years</option>
-                            <option value="5" <?= (isset($_GET['experience']) && $_GET['experience'] == '5') ? 'selected' : '' ?>>5+ years</option>
-                        </select>
-                        <label for="experience"><i class="bi bi-clock-history"></i> Experience</label>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100 h-100">
-                        <i class="bi bi-search"></i> Search
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Sort Options -->
-        <div class="booking-section mb-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="section-title mb-0">
-                    <i class="bi bi-person-check"></i>
-                    Available Drivers
-                </h4>
-                <div class="d-flex gap-2">
-                    <select class="form-select" onchange="updateSort(this.value)">
-                        <option value="rating" <?= $sort == 'rating' ? 'selected' : '' ?>>Sort by Rating</option>
-                        <option value="experience" <?= $sort == 'experience' ? 'selected' : '' ?>>Sort by Experience</option>
-                        <option value="total_trips" <?= $sort == 'total_trips' ? 'selected' : '' ?>>Sort by Trips</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Drivers List -->
-        <div class="booking-section">
-            <?php if ($drivers_result && $drivers_result->num_rows > 0): ?>
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    <?php while($driver = $drivers_result->fetch_assoc()): ?>
-                        <div class="col">
-                            <div class="driver-card">
-                                <div class="driver-profile">
-                                    <img src="<?= !empty($driver['profile_picture']) ? htmlspecialchars($driver['profile_picture']) : 'images/default-profile.png' ?>" 
-                                         class="driver-avatar" alt="Driver Photo">
-                                    <div class="driver-info">
-                                        <h5><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></h5>
-                                        <div class="driver-meta">
-                                            <span class="driver-meta-item">
-                                                <i class="bi bi-clock-history"></i>
-                                                <?= htmlspecialchars($driver['experience'] ?? '0') ?> years experience
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="driver-details">
-                                    <div class="detail-item">
-                                        <i class="bi bi-car-front-fill"></i>
-                                        <span><?= htmlspecialchars($driver['drive'] ?? 'All Vehicles') ?></span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="bi bi-geo-alt-fill"></i>
-                                        <span><?= htmlspecialchars($driver['address'] ?? 'Lagos, Nigeria') ?></span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="bi bi-translate"></i>
-                                        <span><?= htmlspecialchars($driver['speak'] ?? 'English') ?></span>
-                                    </div>
-                                </div>
-                                <div class="mt-3">
-                                    <span class="driver-badge">
-                                        <i class="bi bi-award-fill"></i>
-                                        <?= $driver['experience'] >= 5 ? 'Expert Driver' : 'Experienced Driver' ?>
-                                    </span>
-                                    <span class="driver-badge">
-                                        <i class="bi bi-person-check-fill"></i>
-                                        Licensed
-                                    </span>
-                                </div>
-                                <form action="payment/payment.php" method="GET" style="width: 100%;">
-                                    <input type="hidden" name="driver_id" value="<?= htmlspecialchars($driver['id']) ?>">
-                                    <input type="hidden" name="amount" value="5000"> <!-- Replace with actual amount calculation -->
-                                    <button type="submit" class="select-btn">
-                                        <i class="bi bi-check-circle"></i>
-                                        <span class="btn-text">Book & Pay Now</span>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    <?php endwhile; ?>
-                </div>
-            <?php else: ?>
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    No drivers match your search criteria. Please try different filters.
-                </div>
-            <?php endif; ?>
-        </div>
+<body class="bg-gray-50 min-h-screen">
+<div class="flex min-h-screen">
+\
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
+    <div>
+      <div class="flex items-center gap-2 mb-10 px-2">
+        <span class="fa fa-car text-blue-700 text-2xl"></span>
+        <span class="font-bold text-xl text-blue-700">ProDrivers</span>
+      </div>
+      <nav class="flex flex-col gap-1">
+        <a href="dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-blue-700 bg-blue-50">
+          <i class="fa fa-th-large"></i> Dashboard
+        </a>
+        <a href="book-driver.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 bg-blue-50 font-medium">
+          <i class="fa fa-plus-circle"></i> Book a Driver
+        </a>
+        <a href="my-bookings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-calendar-check"></i> My Bookings
+        </a>
+        <a href="notifications.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 relative">
+          <i class="fa fa-bell"></i> Notifications
+          <?php if (isset($unread_notifications) && $unread_notifications > 0): ?>
+            <span class="absolute right-4 top-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5"><?php echo $unread_notifications; ?></span>
+          <?php endif; ?>
+        </a>
+        <a href="profile.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-user"></i> My Profile
+        </a>
+        <a href="settings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-cog"></i> Settings
+        </a>
+        <a href="support.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-question-circle"></i> Support
+        </a>
+        <a href="logout.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 mt-2">
+          <i class="fa fa-sign-out-alt"></i> Logout
+        </a>
+      </nav>
     </div>
-
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function selectAndRedirect(driverId) {
-            // Redirect directly to booking page with driver ID
-            window.location.href = 'booking.php?driver_id=' + driverId;
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.querySelector('.overlay');
-            
-            if (sidebar && overlay) {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-                document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
-            }
-        }
-
-        function updateSort(value) {
-            const urlParams = new URLSearchParams(window.location.search);
-            urlParams.set('sort', value);
-            urlParams.set('order', 'DESC');
-            window.location.search = urlParams.toString();
-        }
-    </script>
+    <div class="px-2 mt-8">
+      <a href="support.php" class="flex items-center gap-2 text-gray-400 hover:text-blue-600 text-sm">
+        <i class="fa fa-question-circle"></i> Support
+      </a>
+    </div>
+  </aside>
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col">
+    <!-- Header -->
+    <header class="w-full bg-white border-b px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-2xl font-semibold text-gray-900">Book a Driver</h1>
+      <div class="flex items-center gap-4">
+        <img src="<?php echo htmlspecialchars(!empty($user['profile_picture']) ? $user['profile_picture'] : 'images/default-profile.png'); ?>" alt="Profile Picture" class="w-9 h-9 rounded-full object-cover border border-gray-200">
+        <span class="font-medium text-gray-700 hidden sm:block"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
+        <i class="fa fa-chevron-down text-gray-400"></i>
+      </div>
+    </header>
+    <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-8">
+      <!-- Large Search Bar -->
+      <form method="GET" class="mb-8">
+        <input type="text" name="location" value="<?= htmlspecialchars($_GET['location'] ?? '') ?>" placeholder="Search by location, date, time, experience, rating" class="w-full rounded-2xl border border-gray-200 bg-white px-6 py-4 text-base text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
+      </form>
+      <!-- Section Title -->
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Available Drivers</h2>
+      <!-- Drivers Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
+        <?php if ($drivers_result && $drivers_result->num_rows > 0): ?>
+          <?php while($driver = $drivers_result->fetch_assoc()): ?>
+            <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-6 flex flex-col items-center">
+              <img src="<?= !empty($driver['profile_picture']) ? htmlspecialchars($driver['profile_picture']) : 'images/default-profile.png' ?>" class="w-28 h-28 rounded-xl object-cover border border-gray-200 bg-gray-100 mb-4" alt="Driver Photo">
+              <div class="text-center w-full">
+                <h4 class="text-lg font-semibold text-gray-900 mb-1"><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></h4>
+                <div class="text-gray-600 text-sm mb-1"><?= htmlspecialchars($driver['experience'] ?? '0') ?> years experience</div>
+                <div class="text-gray-500 text-sm mb-1"><?= htmlspecialchars($driver['address'] ?? 'Lagos, Nigeria') ?></div>
+                <div class="text-green-600 text-xs mb-2">Available Now</div>
+                <!-- Star Rating Placeholder -->
+                <div class="flex items-center justify-center gap-1 mb-4">
+                  <i class="fa fa-star text-yellow-400"></i>
+                  <i class="fa fa-star text-yellow-400"></i>
+                  <i class="fa fa-star text-yellow-400"></i>
+                  <i class="fa fa-star text-yellow-400"></i>
+                  <i class="fa fa-star-half-alt text-yellow-400"></i>
+                  <span class="ml-2 text-gray-500 text-xs">4.8</span>
+                </div>
+                <form action="payment/payment.php" method="GET" class="w-full">
+                  <input type="hidden" name="driver_id" value="<?= htmlspecialchars($driver['id']) ?>">
+                  <input type="hidden" name="amount" value="5000"> <!-- Replace with actual amount calculation -->
+                  <button type="submit" class="w-full rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2.5 text-base shadow-sm transition">Book Now</button>
+                </form>
+              </div>
+            </div>
+          <?php endwhile; ?>
+        <?php else: ?>
+          <div class="col-span-full flex flex-col items-center justify-center text-gray-500 py-12">
+            <i class="fa fa-info-circle text-3xl mb-2"></i>
+            <span class="text-lg">No drivers match your search criteria. Please try different filters.</span>
+          </div>
+        <?php endif; ?>
+      </div>
+      <!-- Pagination Placeholder -->
+      <div class="flex justify-center items-center gap-2 mb-8">
+        <button class="w-8 h-8 rounded bg-blue-900 text-white font-bold">1</button>
+        <button class="w-8 h-8 rounded bg-gray-200 text-gray-700">2</button>
+        <button class="w-8 h-8 rounded bg-gray-200 text-gray-700">3</button>
+        <button class="w-8 h-8 rounded bg-gray-200 text-gray-700">4</button>
+        <button class="w-8 h-8 rounded bg-gray-200 text-gray-700">5</button>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  function updateSort(value) {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('sort', value);
+    urlParams.set('order', 'DESC');
+    window.location.search = urlParams.toString();
+  }
+</script>
 </body>
 </html> 

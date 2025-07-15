@@ -88,228 +88,149 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_driver'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Booking - Pro-Drivers</title>
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <title>Complete Booking - ProDrivers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        .content {
-            margin-left: 280px;
-            padding: 2rem;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, #0d6efd, #0099ff);
-            color: white;
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-        }
-
-        .booking-section {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
-        }
-
-        .selected-driver-card {
-            display: flex;
-            align-items: flex-start;
-            gap: 1.5rem;
-            padding: 1.5rem;
-            background: #f8f9fa;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-        }
-
-        .driver-avatar {
-            width: 100px;
-            height: 120px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 3px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-        }
-
-        .driver-info h5 {
-            margin: 0 0 0.5rem 0;
-            color: #1e293b;
-            font-size: 1.25rem;
-        }
-
-        .driver-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            color: #64748b;
-        }
-
-        .driver-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.95rem;
-        }
-
-        .driver-meta-item i {
-            color: #0d6efd;
-            font-size: 1.1rem;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                margin-left: 0;
-                padding: 1rem;
-            }
-        }
+      body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
-    <?php include 'partials/sidebar.php'; ?>
-
-    <div class="content">
-        <div class="page-header">
-            <h3 class="mb-0">Complete Your Booking</h3>
-            <p class="mb-0 opacity-75">Fill in the details to book your selected driver</p>
-        </div>
-
-        <div class="booking-section">
-            <h4 class="mb-4">Selected Driver</h4>
-            <div class="selected-driver-card">
-                <img src="<?= !empty($driver['profile_picture']) ? $driver['profile_picture'] : 'images/default-profile.png' ?>" 
-                     class="driver-avatar" alt="Driver Photo">
-                <div class="driver-info">
-                    <h5><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></h5>
-                    <div class="driver-meta">
-                        <div class="driver-meta-item">
-                            <i class="bi bi-geo-alt-fill"></i>
-                            <span><?= htmlspecialchars($driver['address']) ?></span>
-                        </div>
-                        <div class="driver-meta-item">
-                            <i class="bi bi-clock-history"></i>
-                            <span><?= htmlspecialchars($driver['experience']) ?> yrs experience</span>
-                        </div>
-                        <div class="driver-meta-item">
-                            <i class="bi bi-car-front-fill"></i>
-                            <span><?= htmlspecialchars($driver['drive']) ?></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <form method="POST" id="bookingForm" class="mt-4">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <input type="text" class="form-control" id="pickup_location" name="pickup_location" 
-                                   placeholder="Enter pickup location" required>
-                            <label for="pickup_location">Pickup Location</label>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <input type="text" class="form-control" id="dropoff_location" name="dropoff_location" 
-                                   placeholder="Enter dropoff location" required>
-                            <label for="dropoff_location">Dropoff Location</label>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <input type="date" class="form-control" id="pickup_date" name="pickup_date" 
-                                   min="<?= date('Y-m-d') ?>" required>
-                            <label for="pickup_date">Pickup Date</label>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <input type="time" class="form-control" id="pickup_time" name="pickup_time" required>
-                            <label for="pickup_time">Pickup Time</label>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <input type="number" class="form-control" id="duration_days" name="duration_days" 
-                                   min="1" max="30" value="1" required>
-                            <label for="duration_days">Duration (Days)</label>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <select class="form-select" id="vehicle_type" name="vehicle_type" required>
-                                <option value="">Select transmission type</option>
-                                <option value="Automatic">Automatic</option>
-                                <option value="Manual">Manual</option>
-                                <option value="Both">Both (Automatic & Manual)</option>
-                            </select>
-                            <label for="vehicle_type">Transmission Type</label>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <select class="form-select" id="trip_purpose" name="trip_purpose" required>
-                                <option value="">Select trip purpose</option>
-                                <option value="Business">Business</option>
-                                <option value="Personal">Personal</option>
-                                <option value="Airport">Airport Transfer</option>
-                                <option value="Event">Event</option>
-                                <option value="Other">Other</option>
-                            </select>
-                            <label for="trip_purpose">Trip Purpose</label>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="form-floating">
-                            <textarea class="form-control" id="additional_notes" name="additional_notes" 
-                                      style="height: 100px" placeholder="Enter any additional notes"></textarea>
-                            <label for="additional_notes">Additional Notes</label>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <button type="submit" name="book_driver" class="btn btn-primary btn-lg w-100">
-                            <i class="bi bi-check-circle me-2"></i>
-                            Confirm Booking
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
+<body class="bg-gray-50 min-h-screen">
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
+    <div>
+      <div class="flex items-center gap-2 mb-10 px-2">
+        <span class="fa fa-car text-blue-700 text-2xl"></span>
+        <span class="font-bold text-xl text-blue-700">ProDrivers</span>
+      </div>
+      <nav class="flex flex-col gap-1">
+        <a href="dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-th-large"></i> Dashboard
+        </a>
+        <a href="book-driver.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-plus-circle"></i> Book a Driver
+        </a>
+        <a href="my-bookings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-calendar-check"></i> My Bookings
+        </a>
+        <a href="notifications.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 relative">
+          <i class="fa fa-bell"></i> Notifications
+        </a>
+        <a href="profile.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-user"></i> My Profile
+        </a>
+        <a href="settings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-cog"></i> Settings
+        </a>
+        <a href="support.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-question-circle"></i> Support
+        </a>
+        <a href="logout.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 mt-2">
+          <i class="fa fa-sign-out-alt"></i> Logout
+        </a>
+      </nav>
     </div>
-
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Set minimum time based on selected date
-        document.getElementById('pickup_date').addEventListener('change', function() {
-            const dateInput = this.value;
-            const timeInput = document.getElementById('pickup_time');
-            const today = new Date().toISOString().split('T')[0];
-            
-            if (dateInput === today) {
-                const now = new Date();
-                const currentHour = String(now.getHours()).padStart(2, '0');
-                const currentMinute = String(now.getMinutes()).padStart(2, '0');
-                timeInput.min = `${currentHour}:${currentMinute}`;
-            } else {
-                timeInput.min = '';
-            }
-        });
-    </script>
+    <div class="px-2 mt-8">
+      <a href="support.php" class="flex items-center gap-2 text-gray-400 hover:text-blue-600 text-sm">
+        <i class="fa fa-question-circle"></i> Support
+      </a>
+    </div>
+  </aside>
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col">
+    <!-- Header -->
+    <header class="w-full bg-white border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-2xl font-semibold text-gray-900">Complete Your Booking</h1>
+      <div class="flex items-center gap-4">
+        <img src="<?php echo htmlspecialchars(!empty($user['profile_picture']) ? $user['profile_picture'] : 'images/default-profile.png'); ?>" alt="Profile Picture" class="w-9 h-9 rounded-full object-cover border border-gray-200">
+        <span class="font-medium text-gray-700 hidden sm:block"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
+      </div>
+    </header>
+    <main class="flex-1 w-full max-w-3xl mx-auto px-4 py-8">
+      <!-- Selected Driver Card -->
+      <div class="bg-white rounded-xl shadow p-6 mb-8 flex flex-col md:flex-row gap-6 items-center">
+        <img src="<?= !empty($driver['profile_picture']) ? htmlspecialchars($driver['profile_picture']) : 'images/default-profile.png' ?>" class="w-28 h-32 rounded-xl object-cover border border-gray-200 bg-gray-100" alt="Driver Photo">
+        <div class="flex-1">
+          <h2 class="text-lg font-semibold text-gray-800 mb-1"><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></h2>
+          <div class="text-gray-600 text-sm mb-1 flex items-center gap-2"><i class="fa fa-map-marker-alt text-blue-700"></i> <?= htmlspecialchars($driver['address']) ?></div>
+          <div class="text-gray-500 text-sm mb-1 flex items-center gap-2"><i class="fa fa-clock text-green-600"></i> <?= htmlspecialchars($driver['experience']) ?> yrs experience</div>
+          <div class="text-gray-500 text-sm mb-1 flex items-center gap-2"><i class="fa fa-car text-indigo-600"></i> <?= htmlspecialchars($driver['drive']) ?></div>
+        </div>
+      </div>
+      <!-- Booking Form Card -->
+      <div class="bg-white rounded-xl shadow p-8">
+        <form method="POST" id="bookingForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="pickup_location" class="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
+            <input type="text" class="form-input w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" id="pickup_location" name="pickup_location" placeholder="Enter pickup location" required>
+          </div>
+          <div>
+            <label for="dropoff_location" class="block text-sm font-medium text-gray-700 mb-1">Dropoff Location</label>
+            <input type="text" class="form-input w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" id="dropoff_location" name="dropoff_location" placeholder="Enter dropoff location" required>
+          </div>
+          <div>
+            <label for="pickup_date" class="block text-sm font-medium text-gray-700 mb-1">Pickup Date</label>
+            <input type="date" class="form-input w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" id="pickup_date" name="pickup_date" min="<?= date('Y-m-d') ?>" required>
+          </div>
+          <div>
+            <label for="pickup_time" class="block text-sm font-medium text-gray-700 mb-1">Pickup Time</label>
+            <input type="time" class="form-input w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" id="pickup_time" name="pickup_time" required>
+          </div>
+          <div>
+            <label for="duration_days" class="block text-sm font-medium text-gray-700 mb-1">Duration (Days)</label>
+            <input type="number" class="form-input w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" id="duration_days" name="duration_days" min="1" max="30" value="1" required>
+          </div>
+          <div>
+            <label for="vehicle_type" class="block text-sm font-medium text-gray-700 mb-1">Transmission Type</label>
+            <select class="form-select w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" id="vehicle_type" name="vehicle_type" required>
+              <option value="">Select transmission type</option>
+              <option value="Automatic">Automatic</option>
+              <option value="Manual">Manual</option>
+              <option value="Both">Both (Automatic & Manual)</option>
+            </select>
+          </div>
+          <div>
+            <label for="trip_purpose" class="block text-sm font-medium text-gray-700 mb-1">Trip Purpose</label>
+            <select class="form-select w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" id="trip_purpose" name="trip_purpose" required>
+              <option value="">Select trip purpose</option>
+              <option value="Business">Business</option>
+              <option value="Personal">Personal</option>
+              <option value="Airport">Airport Transfer</option>
+              <option value="Event">Event</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label for="additional_notes" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+            <textarea class="form-input w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" id="additional_notes" name="additional_notes" rows="3" placeholder="Enter any additional notes"></textarea>
+          </div>
+          <div class="md:col-span-2">
+            <button type="submit" name="book_driver" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-3 rounded-lg shadow transition flex items-center justify-center gap-2 text-lg">
+              <i class="fa fa-check-circle"></i> Confirm Booking
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  // Set minimum time based on selected date
+  document.getElementById('pickup_date').addEventListener('change', function() {
+    const dateInput = this.value;
+    const timeInput = document.getElementById('pickup_time');
+    const today = new Date().toISOString().split('T')[0];
+    if (dateInput === today) {
+      const now = new Date();
+      const currentHour = String(now.getHours()).padStart(2, '0');
+      const currentMinute = String(now.getMinutes()).padStart(2, '0');
+      timeInput.min = `${currentHour}:${currentMinute}`;
+    } else {
+      timeInput.min = '';
+    }
+  });
+</script>
 </body>
 </html> 
