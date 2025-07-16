@@ -1,5 +1,19 @@
 <?php
-include 'include/db.php';  // assumes $conn is your MySQLi connection
+include 'include/db.php';  // your existing DB connection file
+
+$profile_pictures = [
+    '12.jpg',
+    '18.jpg',
+    '21.jpg',
+    '31.jpg',
+    '41.jpg',
+    '45.jpg',
+    '49.jpg',
+    '57.jpg',
+    '62.jpg',
+    '83.jpg',
+    '92.jpg'
+];
 
 $drivers = [
     [
@@ -10,14 +24,19 @@ $drivers = [
         "password" => password_hash("Mich@2025!ad", PASSWORD_DEFAULT),
         "exp_years" => 9,
         "education" => "OND",
-        "photo_path" => "https://randomuser.me/api/portraits/men/31.jpg",
-        "nin" => "NIN89236001674",
+        "photo_path" => "driver/uploads/profile-pictures/12.jpg",
         "acc_num" => "6209474018",
         "acc_name" => "Michael Adeyemi",
+        "nin" => "NIN89236001674",
         "bank_name" => "First Bank",
         "skills" => "Attention to Detail, Punctuality",
-        "speak" => "English, Yoruba",
-        "drive" => "Manual, Long Distance"
+        "speak" => "English",
+        "drive" => "Manual, Long Distance",
+        "resident" => "12 Alake St, Ikeja, Lagos",
+        "license_number" => "DLN1234567890",
+        "about_me" => "Experienced driver with a passion for safety and punctuality.",
+        "dob" => "1985-04-12",
+        "profile_picture" => "driver/uploads/profile-pictures/12.jpg"
     ],
     [
         "first_name" => "Fatima",
@@ -27,14 +46,19 @@ $drivers = [
         "password" => password_hash("Fat!Umar@25", PASSWORD_DEFAULT),
         "exp_years" => 7,
         "education" => "SSCE",
-        "photo_path" => "https://randomuser.me/api/portraits/women/45.jpg",
-        "nin" => "NIN30322829883",
+        "photo_path" => "driver/uploads/profile-pictures/18.jpg",
         "acc_num" => "3629934984",
         "acc_name" => "Fatima Umar",
+        "nin" => "NIN30322829883",
         "bank_name" => "Zenith Bank",
         "skills" => "Customer Service, Road Safety",
         "speak" => "English, Hausa",
-        "drive" => "Manual, Long Distance"
+        "drive" => "Manual, Long Distance",
+        "resident" => "7 Bello Rd, Kaduna",
+        "license_number" => "DLN2233445566",
+        "about_me" => "Friendly and reliable, with 7 years of professional driving experience.",
+        "dob" => "1990-08-23",
+        "profile_picture" => "driver/uploads/profile-pictures/18.jpg"
     ],
     [
         "first_name" => "Chinedu",
@@ -44,14 +68,19 @@ $drivers = [
         "password" => password_hash("Chine@2025#ok", PASSWORD_DEFAULT),
         "exp_years" => 4,
         "education" => "OND",
-        "photo_path" => "https://randomuser.me/api/portraits/men/57.jpg",
-        "nin" => "NIN86866446889",
+        "photo_path" => "driver/uploads/profile-pictures/21.jpg",
         "acc_num" => "2981540296",
         "acc_name" => "Chinedu Okoro",
+        "nin" => "NIN86866446889",
         "bank_name" => "Access Bank",
         "skills" => "Time Management, Navigation",
         "speak" => "English, Igbo",
-        "drive" => "Manual, Long Distance"
+        "drive" => "Manual, Long Distance",
+        "resident" => "18 Zik Ave, Enugu",
+        "license_number" => "DLN9988776655",
+        "about_me" => "Skilled in navigation and time management, always on time.",
+        "dob" => "1992-11-05",
+        "profile_picture" => "driver/uploads/profile-pictures/21.jpg"
     ],
     [
         "first_name" => "Grace",
@@ -61,31 +90,41 @@ $drivers = [
         "password" => password_hash("G@raceAlabi25", PASSWORD_DEFAULT),
         "exp_years" => 5,
         "education" => "B.Sc",
-        "photo_path" => "https://randomuser.me/api/portraits/women/62.jpg",
-        "nin" => "NIN40111756324",
+        "photo_path" => "driver/uploads/profile-pictures/31.jpg",
         "acc_num" => "4198557023",
         "acc_name" => "Grace Alabi",
+        "nin" => "NIN40111756324",
         "bank_name" => "UBA",
         "skills" => "Defensive Driving, Route Planning",
         "speak" => "English",
-        "drive" => "Manual, Long Distance"
+        "drive" => "Manual, Long Distance",
+        "resident" => "24 Unity Crescent, Ibadan",
+        "license_number" => "DLN1122334455",
+        "about_me" => "Defensive driver with a focus on safety and customer satisfaction.",
+        "dob" => "1989-02-17",
+        "profile_picture" => "driver/uploads/profile-pictures/31.jpg"
     ],
     [
         "first_name" => "Yusuf",
         "last_name" => "Ibrahim",
         "email" => "yusufdriver@gmail.com",
         "phone" => "+2348012345678",
-        "password" => password_hash("Yu$Ib!2025", PASSWORD_DEFAULT),
+        "password" => password_hash('Yu$Ib!2025', PASSWORD_DEFAULT),
         "exp_years" => 3,
         "education" => "HND",
-        "photo_path" => "https://randomuser.me/api/portraits/men/21.jpg",
-        "nin" => "NIN64520238590",
+        "photo_path" => "driver/uploads/profile-pictures/41.jpg",
         "acc_num" => "2209193725",
         "acc_name" => "Yusuf Ibrahim",
+        "nin" => "NIN64520238590",
         "bank_name" => "GTBank",
         "skills" => "Customer Service, Road Safety",
         "speak" => "English, Hausa",
-        "drive" => "Manual, Long Distance"
+        "drive" => "Manual, Long Distance",
+        "resident" => "14 Ahmadu Way, Kano",
+        "license_number" => "DLN5566778899",
+        "about_me" => "Excellent customer service and road safety skills.",
+        "dob" => "1995-06-30",
+        "profile_picture" => "driver/uploads/profile-pictures/41.jpg"
     ],
     [
         "first_name" => "Kelechi",
@@ -95,14 +134,19 @@ $drivers = [
         "password" => password_hash("KelEze@2025!", PASSWORD_DEFAULT),
         "exp_years" => 6,
         "education" => "B.Sc",
-        "photo_path" => "https://randomuser.me/api/portraits/men/83.jpg",
-        "nin" => "NIN58367374983",
+        "photo_path" => "driver/uploads/profile-pictures/45.jpg",
         "acc_num" => "7736924851",
         "acc_name" => "Kelechi Eze",
+        "nin" => "NIN58367374983",
         "bank_name" => "First Bank",
         "skills" => "Defensive Driving, Route Planning",
         "speak" => "English, Igbo",
-        "drive" => "Manual, Long Distance"
+        "drive" => "Manual, Long Distance",
+        "resident" => "33 Upper Chime, Enugu",
+        "license_number" => "DLN3344556677",
+        "about_me" => "Route planning expert and defensive driver.",
+        "dob" => "1987-09-14",
+        "profile_picture" => "driver/uploads/profile-pictures/45.jpg"
     ],
     [
         "first_name" => "Aminat",
@@ -112,14 +156,19 @@ $drivers = [
         "password" => password_hash("AmiBalogun#25", PASSWORD_DEFAULT),
         "exp_years" => 2,
         "education" => "SSCE",
-        "photo_path" => "https://randomuser.me/api/portraits/women/18.jpg",
-        "nin" => "NIN99294716348",
+        "photo_path" => "driver/uploads/profile-pictures/49.jpg",
         "acc_num" => "5410932847",
         "acc_name" => "Aminat Balogun",
+        "nin" => "NIN99294716348",
         "bank_name" => "Zenith Bank",
         "skills" => "Time Management, Navigation",
         "speak" => "English, Yoruba",
-        "drive" => "Manual, Long Distance"
+        "drive" => "Manual, Long Distance",
+        "resident" => "9 Balogun St, Ilorin",
+        "license_number" => "DLN7788990011",
+        "about_me" => "Punctual and skilled in time management.",
+        "dob" => "1998-12-03",
+        "profile_picture" => "driver/uploads/profile-pictures/49.jpg"
     ],
     [
         "first_name" => "Samuel",
@@ -129,14 +178,19 @@ $drivers = [
         "password" => password_hash("SamJ@25!ride", PASSWORD_DEFAULT),
         "exp_years" => 10,
         "education" => "M.Sc",
-        "photo_path" => "https://randomuser.me/api/portraits/men/12.jpg",
-        "nin" => "NIN14567420938",
+        "photo_path" => "driver/uploads/profile-pictures/57.jpg",
         "acc_num" => "6183029472",
         "acc_name" => "Samuel Johnson",
+        "nin" => "NIN14567420938",
         "bank_name" => "Access Bank",
         "skills" => "Attention to Detail, Punctuality",
         "speak" => "English",
-        "drive" => "Manual, Long Distance"
+        "drive" => "Manual, Long Distance",
+        "resident" => "88 GRA Phase II, Port Harcourt",
+        "license_number" => "DLN4455667788",
+        "about_me" => "Highly experienced with a focus on detail and punctuality.",
+        "dob" => "1980-03-21",
+        "profile_picture" => "driver/uploads/profile-pictures/57.jpg"
     ],
     [
         "first_name" => "Deborah",
@@ -146,14 +200,19 @@ $drivers = [
         "password" => password_hash("Deb#Nwan2025", PASSWORD_DEFAULT),
         "exp_years" => 1,
         "education" => "OND",
-        "photo_path" => "https://randomuser.me/api/portraits/women/36.jpg",
-        "nin" => "NIN50839174620",
+        "photo_path" => "driver/uploads/profile-pictures/62.jpg",
         "acc_num" => "1420384759",
         "acc_name" => "Deborah Nwankwo",
+        "nin" => "NIN50839174620",
         "bank_name" => "UBA",
         "skills" => "Time Management, Navigation",
         "speak" => "English, Igbo",
-        "drive" => "Manual, Long Distance"
+        "drive" => "Manual, Long Distance",
+        "resident" => "5 New Market Rd, Owerri",
+        "license_number" => "DLN2233557799",
+        "about_me" => "New but eager to learn and deliver great service.",
+        "dob" => "2000-07-19",
+        "profile_picture" => "driver/uploads/profile-pictures/62.jpg"
     ],
     [
         "first_name" => "Ibrahim",
@@ -163,40 +222,49 @@ $drivers = [
         "password" => password_hash("IbSu@25Pass!", PASSWORD_DEFAULT),
         "exp_years" => 6,
         "education" => "B.Sc",
-        "photo_path" => "https://randomuser.me/api/portraits/men/49.jpg",
-        "nin" => "NIN77823014756",
+        "photo_path" => "driver/uploads/profile-pictures/83.jpg",
         "acc_num" => "3840291864",
         "acc_name" => "Ibrahim Sule",
+        "nin" => "NIN77823014756",
         "bank_name" => "GTBank",
         "skills" => "Defensive Driving, Route Planning",
         "speak" => "English, Hausa",
-        "drive" => "Manual, Long Distance"
+        "drive" => "Manual, Long Distance",
+        "resident" => "21 Sardauna Cres, Minna",
+        "license_number" => "DLN6677889900",
+        "about_me" => "Defensive driver with a strong safety record.",
+        "dob" => "1988-10-11",
+        "profile_picture" => "driver/uploads/profile-pictures/83.jpg"
     ]
 ];
 
 foreach ($drivers as $driver) {
     $stmt = $conn->prepare("INSERT INTO drivers 
-        (first_name, last_name, email, phone, password, exp_years, education, photo_path,
-         nin, acc_num, acc_name, bank_name, skills, speak, drive)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        (first_name, last_name, email, phone, password, exp_years, education, photo_path, acc_num, acc_name, nin, bank_name, skills, speak, drive, resident, license_number, about_me, dob, profile_picture)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     $stmt->bind_param(
-        "sssssssssssssss",
+        "ssssisssssssssssssss",
         $driver['first_name'],
         $driver['last_name'],
         $driver['email'],
         $driver['phone'],
         $driver['password'],
-        $driver['exp_years'],
+        $driver['exp_years'], // integer
         $driver['education'],
         $driver['photo_path'],
-        $driver['nin'],
         $driver['acc_num'],
         $driver['acc_name'],
+        $driver['nin'],
         $driver['bank_name'],
         $driver['skills'],
         $driver['speak'],
-        $driver['drive']
+        $driver['drive'],
+        $driver['resident'],
+        $driver['license_number'],
+        $driver['about_me'],
+        $driver['dob'],
+        $driver['profile_picture']
     );
 
     if ($stmt->execute()) {
@@ -204,9 +272,8 @@ foreach ($drivers as $driver) {
     } else {
         echo "❌ Error inserting {$driver['email']}: " . $stmt->error . "<br>";
     }
-
-    $stmt->close();
 }
 
+$stmt->close();
 $conn->close();
 ?>

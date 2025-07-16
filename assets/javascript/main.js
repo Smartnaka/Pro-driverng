@@ -803,3 +803,50 @@
     preload();
   });
 })(jQuery);
+
+document.addEventListener('DOMContentLoaded', function() {
+  function getFilterParams() {
+    const params = new URLSearchParams(window.location.search);
+    return params;
+  }
+
+  function updateDriverGrid(page) {
+    const params = getFilterParams();
+    params.set('page', page);
+    const gridContainer = document.getElementById('driver-grid-container');
+    const paginationControls = document.getElementById('pagination-controls');
+    // Show loading
+    gridContainer.innerHTML = '<div class="flex justify-center items-center py-12"><span class="text-gray-500">Loading...</span></div>';
+    fetch('api/driver_list.php?' + params.toString(), { credentials: 'same-origin' })
+      .then(response => response.text())
+      .then(html => {
+        gridContainer.innerHTML = html;
+        // Update pagination controls
+        params.delete('page'); // Remove page for pagination links
+        fetch('book-driver.php?ajax_pagination=1&' + params.toString() + '&page=' + page, { credentials: 'same-origin' })
+          .then(resp => resp.text())
+          .then(paginationHtml => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = paginationHtml;
+            const newControls = tempDiv.querySelector('#pagination-controls');
+            if (newControls && paginationControls) {
+              paginationControls.innerHTML = newControls.innerHTML;
+            }
+          });
+      });
+  }
+
+  document.body.addEventListener('click', function(e) {
+    if (e.target.classList.contains('pagination-btn')) {
+      e.preventDefault();
+      const page = e.target.getAttribute('data-page');
+      if (page) {
+        updateDriverGrid(page);
+        // Update URL without reloading
+        const params = getFilterParams();
+        params.set('page', page);
+        window.history.replaceState({}, '', '?' + params.toString());
+      }
+    }
+  });
+});

@@ -96,7 +96,7 @@ if (isset($_GET['debug'])) {
 </head>
 <body class="bg-gray-50 min-h-screen">
 <div class="flex min-h-screen">
-\
+
   <!-- Sidebar -->
   <aside class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
     <div>
@@ -153,53 +153,83 @@ if (isset($_GET['debug'])) {
     </header>
     <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-8">
       <!-- Large Search Bar -->
-      <form method="GET" class="mb-8">
-        <input type="text" name="location" value="<?= htmlspecialchars($_GET['location'] ?? '') ?>" placeholder="Search by location, date, time, experience, rating" class="w-full rounded-2xl border border-gray-200 bg-white px-6 py-4 text-base text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
-      </form>
+      <div class="mb-8 p-6 bg-white border border-gray-200 rounded-2xl shadow-sm">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div class="flex flex-col">
+            <label for="location" class="mb-1 text-sm font-medium text-gray-700">Location</label>
+            <input id="location" type="text" name="location" value="<?= htmlspecialchars($_GET['location'] ?? '') ?>" placeholder="Location" class="rounded-xl border px-4 py-2 w-full" />
+          </div>
+          <div class="flex flex-col">
+            <label for="vehicle_type" class="mb-1 text-sm font-medium text-gray-700">Vehicle Type</label>
+            <select id="vehicle_type" name="vehicle_type" class="rounded-xl border px-4 py-2 w-full">
+              <option value="">Vehicle Type</option>
+              <option value="Manual, Long Distance" <?= (($_GET['vehicle_type'] ?? '') == 'Manual, Long Distance') ? 'selected' : '' ?>>Manual, Long Distance</option>
+              <option value="Car, Bus" <?= (($_GET['vehicle_type'] ?? '') == 'Car, Bus') ? 'selected' : '' ?>>Car, Bus</option>
+              <option value="Car, Bus, Coaster" <?= (($_GET['vehicle_type'] ?? '') == 'Car, Bus, Coaster') ? 'selected' : '' ?>>Car, Bus, Coaster</option>
+              <option value="Car, Bus, Coaster, Motorcycle/Tricycle" <?= (($_GET['vehicle_type'] ?? '') == 'Car, Bus, Coaster, Motorcycle/Tricycle') ? 'selected' : '' ?>>Car, Bus, Coaster, Motorcycle/Tricycle</option>
+            </select>
+          </div>
+          <div class="flex flex-col">
+            <label for="experience" class="mb-1 text-sm font-medium text-gray-700">Min Experience (years)</label>
+            <select id="experience" name="experience" class="rounded-xl border px-4 py-2 w-full">
+              <option value="">Min Experience (years)</option>
+              <?php for ($i = 1; $i <= 20; $i++): ?>
+                <option value="<?= $i ?>" <?= (($_GET['experience'] ?? '') == $i) ? 'selected' : '' ?>><?= $i ?></option>
+              <?php endfor; ?>
+            </select>
+          </div>
+          <div class="flex flex-col">
+            <label class="invisible md:visible mb-1 text-sm font-medium">&nbsp;</label>
+            <button type="submit" class="bg-blue-900 text-white rounded-xl px-6 py-2 w-full md:w-auto md:self-end">Search</button>
+          </div>
+        </form>
+      </div>
       <!-- Section Title -->
       <h2 class="text-2xl font-bold text-gray-800 mb-6">Available Drivers</h2>
       <!-- Drivers Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
-        <?php if ($drivers_result && $drivers_result->num_rows > 0): ?>
-          <?php while($driver = $drivers_result->fetch_assoc()): ?>
-            <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-6 flex flex-col items-center">
-              <img src="<?= !empty($driver['profile_picture']) ? htmlspecialchars($driver['profile_picture']) : 'images/default-profile.png' ?>" class="w-28 h-28 rounded-xl object-cover border border-gray-200 bg-gray-100 mb-4" alt="Driver Photo">
-              <div class="text-center w-full">
-                <h4 class="text-lg font-semibold text-gray-900 mb-1"><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></h4>
-                <div class="text-gray-600 text-sm mb-1"><?= htmlspecialchars($driver['experience'] ?? '0') ?> years experience</div>
-                <div class="text-gray-500 text-sm mb-1"><?= htmlspecialchars($driver['address'] ?? 'Lagos, Nigeria') ?></div>
-                <div class="text-green-600 text-xs mb-2">Available Now</div>
-                <!-- Star Rating Placeholder -->
-                <div class="flex items-center justify-center gap-1 mb-4">
-                  <i class="fa fa-star text-yellow-400"></i>
-                  <i class="fa fa-star text-yellow-400"></i>
-                  <i class="fa fa-star text-yellow-400"></i>
-                  <i class="fa fa-star text-yellow-400"></i>
-                  <i class="fa fa-star-half-alt text-yellow-400"></i>
-                  <span class="ml-2 text-gray-500 text-xs">4.8</span>
-                </div>
-                <form action="payment/payment.php" method="GET" class="w-full">
-                  <input type="hidden" name="driver_id" value="<?= htmlspecialchars($driver['id']) ?>">
-                  <input type="hidden" name="amount" value="5000"> <!-- Replace with actual amount calculation -->
-                  <button type="submit" class="w-full rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2.5 text-base shadow-sm transition">Book Now</button>
-                </form>
-              </div>
-            </div>
-          <?php endwhile; ?>
-        <?php else: ?>
-          <div class="col-span-full flex flex-col items-center justify-center text-gray-500 py-12">
-            <i class="fa fa-info-circle text-3xl mb-2"></i>
-            <span class="text-lg">No drivers match your search criteria. Please try different filters.</span>
-          </div>
-        <?php endif; ?>
+      <div id="driver-grid-container">
+        <?php include 'partials/driver-grid.php'; ?>
       </div>
-      <!-- Pagination Placeholder -->
-      <div class="flex justify-center items-center gap-2 mb-8">
-        <button class="w-8 h-8 rounded bg-blue-900 text-white font-bold">1</button>
-        <button class="w-8 h-8 rounded bg-gray-200 text-gray-700">2</button>
-        <button class="w-8 h-8 rounded bg-gray-200 text-gray-700">3</button>
-        <button class="w-8 h-8 rounded bg-gray-200 text-gray-700">4</button>
-        <button class="w-8 h-8 rounded bg-gray-200 text-gray-700">5</button>
+      <!-- Pagination Controls -->
+      <?php
+        // Calculate total drivers for pagination
+        $count_sql = "SELECT COUNT(*) as total FROM drivers";
+        $count_where = [];
+        $count_params = [];
+        $count_types = "";
+        if (isset($_GET['location']) && !empty($_GET['location'])) {
+          $count_where[] = "address LIKE ?";
+          $count_params[] = "%" . $_GET['location'] . "%";
+          $count_types .= "s";
+        }
+        if (isset($_GET['vehicle_type']) && !empty($_GET['vehicle_type'])) {
+          $count_where[] = "drive LIKE ?";
+          $count_params[] = "%" . $_GET['vehicle_type'] . "%";
+          $count_types .= "s";
+        }
+        if (isset($_GET['experience']) && !empty($_GET['experience'])) {
+          $count_where[] = "experience >= ?";
+          $count_params[] = $_GET['experience'];
+          $count_types .= "i";
+        }
+        if (!empty($count_where)) {
+          $count_sql .= " WHERE " . implode(" AND ", $count_where);
+        }
+        $count_stmt = $conn->prepare($count_sql);
+        if (!empty($count_params)) {
+          $count_stmt->bind_param($count_types, ...$count_params);
+        }
+        $count_stmt->execute();
+        $count_result = $count_stmt->get_result();
+        $total_drivers = $count_result->fetch_assoc()['total'] ?? 0;
+        $per_page = 8;
+        $total_pages = ceil($total_drivers / $per_page);
+        $current_page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+      ?>
+      <div class="flex justify-center items-center gap-2 mb-8" id="pagination-controls">
+        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+          <button type="button" class="w-8 h-8 rounded <?= $i == $current_page ? 'bg-blue-900 text-white font-bold' : 'bg-gray-200 text-gray-700' ?> pagination-btn" data-page="<?= $i ?>"><?= $i ?></button>
+        <?php endfor; ?>
       </div>
     </main>
   </div>
