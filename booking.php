@@ -242,17 +242,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_driver'])) {
     </main>
   </div>
 </div>
-<div id="booking-summary-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
-  <div class="bg-white rounded-2xl shadow-lg max-w-md w-full relative animate-fadeIn p-6">
-    <button type="button" id="close-summary-modal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
-    <div class="mb-4 text-xl font-bold text-center">Review Your Booking</div>
-    <div id="booking-summary-content" class="mb-6 text-base text-gray-800"></div>
-    <div class="flex justify-center gap-4">
-      <button type="button" id="confirm-booking-btn" class="bg-blue-900 text-white rounded-lg px-6 py-2 font-semibold">Confirm</button>
-      <button type="button" id="cancel-booking-btn" class="bg-gray-200 text-gray-800 rounded-lg px-6 py-2 font-semibold">Cancel</button>
-    </div>
-  </div>
-</div>
 <div id="loading-overlay" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.8);align-items:center;justify-content:center;">
   <div style="text-align:center;">
     <div class="fa fa-spinner fa-spin" style="font-size:3rem;color:#2563eb;"></div>
@@ -292,119 +281,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Booking summary modal logic
   const bookingForm = document.getElementById('bookingForm');
-  const summaryModal = document.getElementById('booking-summary-modal');
-  const summaryContent = document.getElementById('booking-summary-content');
-  const closeSummaryBtn = document.getElementById('close-summary-modal');
-  const confirmBookingBtn = document.getElementById('confirm-booking-btn');
-  const cancelBookingBtn = document.getElementById('cancel-booking-btn');
+  // Remove the booking summary modal HTML
+  // Remove the modal JavaScript logic, keep only direct form submission
   let pendingSubmit = false;
 
   console.log('bookingForm:', bookingForm);
 
-  function showBookingSummary(e) {
-    if (pendingSubmit) return; // Allow real submit after confirm
-    // Remove previous errors
-    document.querySelectorAll('.form-error').forEach(el => el.remove());
-    let valid = true;
-    function showError(input, message) {
-      const err = document.createElement('div');
-      err.className = 'form-error text-red-600 text-sm mt-1';
-      err.textContent = message;
-      input.parentNode.appendChild(err);
-      valid = false;
-    }
-    // Required fields
-    const pickup = document.getElementById('pickup_location');
-    const dropoff = document.getElementById('dropoff_location');
-    const date = document.getElementById('pickup_date');
-    const time = document.getElementById('pickup_time');
-    const duration = document.getElementById('duration_days');
-    const vehicle = document.getElementById('vehicle_type');
-    const purpose = document.getElementById('trip_purpose');
-    if (!pickup.value.trim()) showError(pickup, 'Pickup location is required.');
-    if (!dropoff.value.trim()) showError(dropoff, 'Dropoff location is required.');
-    if (!date.value) showError(date, 'Pickup date is required.');
-    else {
-      const today = new Date();
-      const selected = new Date(date.value);
-      today.setHours(0,0,0,0);
-      selected.setHours(0,0,0,0);
-      if (selected < today) showError(date, 'Pickup date cannot be in the past.');
-    }
-    if (!time.value) showError(time, 'Pickup time is required.');
-    if (!duration.value || parseInt(duration.value) < 1) showError(duration, 'Duration must be at least 1 day.');
-    if (!vehicle.value) showError(vehicle, 'Transmission type is required.');
-    if (!purpose.value) showError(purpose, 'Trip purpose is required.');
-    if (!valid) {
-      e.preventDefault();
-      return;
-    }
-    // Build summary HTML
-    const driverName = "<?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?>";
-    const price = `₦${(baseRate * (parseInt(duration.value)||1)).toLocaleString()}`;
-    summaryContent.innerHTML = `
-      <div class='mb-2'><span class='font-semibold'>Driver:</span> ${driverName}</div>
-      <div class='mb-2'><span class='font-semibold'>Pickup:</span> ${pickup.value}</div>
-      <div class='mb-2'><span class='font-semibold'>Dropoff:</span> ${dropoff.value}</div>
-      <div class='mb-2'><span class='font-semibold'>Date:</span> ${date.value}</div>
-      <div class='mb-2'><span class='font-semibold'>Time:</span> ${time.value}</div>
-      <div class='mb-2'><span class='font-semibold'>Duration:</span> ${duration.value} day(s)</div>
-      <div class='mb-2'><span class='font-semibold'>Vehicle Type:</span> ${vehicle.value}</div>
-      <div class='mb-2'><span class='font-semibold'>Trip Purpose:</span> ${purpose.value}</div>
-      <div class='mb-2'><span class='font-semibold'>Total Price:</span> <span class='text-blue-900 font-bold'>${price}</span></div>
-    `;
-    summaryModal.classList.remove('hidden');
-    e.preventDefault();
-  }
-
-  bookingForm.addEventListener('submit', showBookingSummary);
-  closeSummaryBtn.addEventListener('click', () => summaryModal.classList.add('hidden'));
-  cancelBookingBtn.addEventListener('click', () => summaryModal.classList.add('hidden'));
-  confirmBookingBtn.addEventListener('click', function() {
-    console.log('Confirm button clicked');
-    pendingSubmit = true;
-    summaryModal.classList.add('hidden');
-    document.getElementById('loading-overlay').style.display = 'flex'; // Show loading
-    bookingForm.submit();
-  });
-
-  // Client-side validation
-  bookingForm.addEventListener('submit', function(e) {
-    // Remove previous errors
-    document.querySelectorAll('.form-error').forEach(el => el.remove());
-    let valid = true;
-    function showError(input, message) {
-      const err = document.createElement('div');
-      err.className = 'form-error text-red-600 text-sm mt-1';
-      err.textContent = message;
-      input.parentNode.appendChild(err);
-      valid = false;
-    }
-    // Required fields
-    const pickup = document.getElementById('pickup_location');
-    const dropoff = document.getElementById('dropoff_location');
-    const date = document.getElementById('pickup_date');
-    const time = document.getElementById('pickup_time');
-    const duration = document.getElementById('duration_days');
-    const vehicle = document.getElementById('vehicle_type');
-    const purpose = document.getElementById('trip_purpose');
-    if (!pickup.value.trim()) showError(pickup, 'Pickup location is required.');
-    if (!dropoff.value.trim()) showError(dropoff, 'Dropoff location is required.');
-    if (!date.value) showError(date, 'Pickup date is required.');
-    else {
-      const today = new Date();
-      const selected = new Date(date.value);
-      today.setHours(0,0,0,0);
-      selected.setHours(0,0,0,0);
-      if (selected < today) showError(date, 'Pickup date cannot be in the past.');
-    }
-    if (!time.value) showError(time, 'Pickup time is required.');
-    if (!duration.value || parseInt(duration.value) < 1) showError(duration, 'Duration must be at least 1 day.');
-    if (!vehicle.value) showError(vehicle, 'Transmission type is required.');
-    if (!purpose.value) showError(purpose, 'Trip purpose is required.');
-    if (!valid) e.preventDefault();
-  });
-
+  // No modal logic, form submits directly
   // Ensure loading overlay is shown on real submit
   bookingForm.addEventListener('submit', function(e) {
     if (pendingSubmit) {

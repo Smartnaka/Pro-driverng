@@ -118,6 +118,23 @@ if ('success' == $tranx->data->status) {
     );
     
     if ($stmt->execute()) {
+        // Fetch user email and first name for notification
+        $user_id = $_SESSION['user_id'];
+        $user_email = '';
+        $user_first_name = '';
+        $user_sql = "SELECT email, first_name FROM customers WHERE id = ? LIMIT 1";
+        $user_stmt = $conn->prepare($user_sql);
+        if ($user_stmt) {
+            $user_stmt->bind_param("i", $user_id);
+            $user_stmt->execute();
+            $user_stmt->bind_result($user_email, $user_first_name);
+            $user_stmt->fetch();
+            $user_stmt->close();
+        }
+        // Send notification email
+        include_once '../include/SecureMailer.php';
+        $mailer = new SecureMailer();
+        $mailer->sendWelcomeEmail($user_email, $user_first_name);
         unset($_SESSION['booking_details']);
         unset($_SESSION['pending_booking']);
         header("Location: payment-success.php");

@@ -80,194 +80,101 @@ if (isset($_SESSION['pending_booking']) && !empty($_SESSION['pending_booking']))
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment - Pro-Drivers</title>
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <title>Payment - ProDrivers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://js.paystack.co/v2/inline.js"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        .content {
-            margin-left: 280px;
-            padding: 1.5rem;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            color: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
-        }
-
-        .page-header h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .page-header p {
-            font-size: 1rem;
-            opacity: 0.9;
-            margin: 0;
-        }
-
-        .payment-section {
-            background: white;
-            border-radius: 16px;
-            padding: 1.25rem;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .section-title i {
-            color: #2563eb;
-        }
-
-        .payment-summary {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-            color: #64748b;
-        }
-
-        .summary-item.total {
-            border-top: 1px solid #e2e8f0;
-            padding-top: 0.75rem;
-            margin-top: 0.75rem;
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .pay-button {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .pay-button:hover {
-            background: #1d4ed8;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
-        }
-
-        .pay-button i {
-            font-size: 1.2rem;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                margin-left: 0;
-                padding: 1rem;
-            }
-
-            .page-header {
-                padding: 1.25rem;
-            }
-
-            .payment-section {
-                padding: 1rem;
-            }
-        }
+      body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
-    <!-- Include Sidebar -->
-    <?php include '../partials/sidebar.php'; ?>
-    
-    <!-- Main Content -->
-    <div class="content">
-        <div class="page-header">
-            <h3 class="mb-0">Complete Payment</h3>
-            <p class="mb-0 opacity-75">Secure payment powered by Paystack</p>
-        </div>
-
-        <div class="payment-section">
-            <h4 class="section-title">
-                <i class="bi bi-credit-card"></i>
-                Payment Details
-            </h4>
-
-            <div class="payment-summary">
-                <div class="summary-item">
-                    <span>Driver Name:</span>
-                    <span><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></span>
-                </div>
-                <div class="summary-item">
-                    <span>Vehicle Type:</span>
-                    <span><?= htmlspecialchars($driver['drive']) ?></span>
-                </div>
-                <div class="summary-item">
-                    <span>Amount:</span>
-                    <span>₦<?= number_format($amount, 2) ?></span>
-                </div>
-                <div class="summary-item total">
-                    <span>Total Amount:</span>
-                    <span>₦<?= number_format($amount, 2) ?></span>
-                </div>
-            </div>
-
-            <button onclick="payWithPaystack()" class="pay-button">
-                <i class="bi bi-credit-card"></i>
-                Pay Now
-            </button>
-        </div>
+<body class="bg-gray-50 min-h-screen">
+<div class="flex min-h-screen">
+  <!-- Sidebar (copied from dashboard.php) -->
+  <aside class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
+    <div>
+      <div class="flex items-center gap-2 mb-10 px-2">
+        <span class="fa fa-car text-blue-700 text-2xl"></span>
+        <span class="font-bold text-xl text-blue-700">ProDrivers</span>
+      </div>
+      <nav class="flex flex-col gap-1">
+        <a href="../dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-th-large"></i> Dashboard
+        </a>
+        <a href="../book-driver.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-plus-circle"></i> Book a Driver
+        </a>
+        <a href="../my-bookings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-calendar-check"></i> My Bookings
+        </a>
+        <a href="../notifications.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 relative">
+          <i class="fa fa-bell"></i> Notifications
+        </a>
+        <a href="../profile.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-user"></i> My Profile
+        </a>
+        <a href="../settings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-cog"></i> Settings
+        </a>
+        <a href="../support.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-question-circle"></i> Support
+        </a>
+        <a href="../logout.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 mt-2">
+          <i class="fa fa-sign-out-alt"></i> Logout
+        </a>
+      </nav>
     </div>
-
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function payWithPaystack() {
-            const handler = PaystackPop.setup({
-                key: 'pk_test_9da1212b6c99a9b813dc323aa680e01bfcc8e52d', // Replace with your public key
-                email: '<?= htmlspecialchars($user['email']) ?>',
-                amount: <?= $amount * 100 ?>, // Convert to kobo
-                currency: 'NGN',
-                ref: '<?= $reference ?>',
-                callback: function(response) {
-                    // Make an AJAX call to your server with the reference to verify the transaction
-                    window.location.href = 'verify-payment.php?reference=' + response.reference;
-                },
-                onClose: function() {
-                    alert('Transaction was not completed, window closed.');
-                }
-            });
-            handler.openIframe();
-        }
-    </script>
+    <div class="px-2 mt-8">
+      <a href="../support.php" class="flex items-center gap-2 text-gray-400 hover:text-blue-600 text-sm">
+        <i class="fa fa-question-circle"></i> Support
+      </a>
+    </div>
+  </aside>
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col">
+    <!-- Header -->
+    <header class="w-full bg-white border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-2xl font-semibold text-gray-900">Complete Payment</h1>
+      <div class="flex items-center gap-4">
+        <img src="<?php echo htmlspecialchars(!empty($user['profile_picture']) ? $user['profile_picture'] : '../images/default-profile.png'); ?>" alt="Profile Picture" class="w-9 h-9 rounded-full object-cover border border-gray-200">
+        <span class="font-medium text-gray-700 hidden sm:block"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
+      </div>
+    </header>
+    <main class="flex-1 w-full max-w-2xl mx-auto px-4 py-8">
+      <div class="bg-white rounded-xl shadow p-8 mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"><i class="fa fa-credit-card text-blue-700"></i> Payment Details</h2>
+        <div class="mb-6">
+          <div class="flex justify-between text-gray-600 mb-2"><span>Driver Name:</span><span><?= htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']) ?></span></div>
+          <div class="flex justify-between text-gray-600 mb-2"><span>Vehicle Type:</span><span><?= htmlspecialchars($driver['drive']) ?></span></div>
+          <div class="flex justify-between text-gray-600 mb-2"><span>Amount:</span><span>₦<?= number_format($amount, 2) ?></span></div>
+          <div class="flex justify-between font-semibold text-gray-900 border-t pt-3 mt-3"><span>Total Amount:</span><span>₦<?= number_format($amount, 2) ?></span></div>
+        </div>
+        <button onclick="payWithPaystack()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-3 rounded-lg shadow transition flex items-center justify-center gap-2 text-lg">
+          <i class="fa fa-credit-card"></i> Pay Now
+        </button>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+    function payWithPaystack() {
+        const handler = PaystackPop.setup({
+            key: 'pk_test_9da1212b6c99a9b813dc323aa680e01bfcc8e52d', // Replace with your public key
+            email: '<?= htmlspecialchars($user['email']) ?>',
+            amount: <?= $amount * 100 ?>, // Convert to kobo
+            currency: 'NGN',
+            ref: '<?= $reference ?>',
+            callback: function(response) {
+                // Make an AJAX call to your server with the reference to verify the transaction
+                window.location.href = 'verify-payment.php?reference=' + response.reference;
+            },
+            onClose: function() {
+                alert('Transaction was not completed, window closed.');
+            }
+        });
+        handler.openIframe();
+    }
+</script>
 </body>
 </html> 
