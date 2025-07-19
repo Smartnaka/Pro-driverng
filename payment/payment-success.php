@@ -108,6 +108,44 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
           <div class="text-blue-900 text-xl font-mono font-bold mb-2"><?php echo htmlspecialchars($_SESSION['last_booking_reference']); ?></div>
           <?php if (isset($_SESSION['last_booking_id'])): ?>
           <div class="text-gray-500 text-sm">Booking ID: <?php echo htmlspecialchars($_SESSION['last_booking_id']); ?></div>
+          <?php 
+            // Fetch booking summary
+            $booking_id = $_SESSION['last_booking_id'];
+            $booking_sql = "SELECT * FROM bookings WHERE id = ? AND user_id = ? LIMIT 1";
+            $booking_stmt = $conn->prepare($booking_sql);
+            $booking_stmt->bind_param("ii", $booking_id, $user_id);
+            $booking_stmt->execute();
+            $booking_result = $booking_stmt->get_result();
+            $booking_row = $booking_result->fetch_assoc();
+            $booking_stmt->close();
+            if ($booking_row) {
+              // Fetch driver details
+              $driver_sql = "SELECT first_name, last_name FROM drivers WHERE id = ? LIMIT 1";
+              $driver_stmt = $conn->prepare($driver_sql);
+              $driver_stmt->bind_param("i", $booking_row['driver_id']);
+              $driver_stmt->execute();
+              $driver_result = $driver_stmt->get_result();
+              $driver = $driver_result->fetch_assoc();
+              $driver_stmt->close();
+          ?>
+          <div class="bg-gray-50 border rounded-lg p-4 mt-4 text-left max-w-xl mx-auto">
+            <div class="font-semibold text-gray-800 mb-2">Booking Summary</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-gray-700 text-sm">
+              <div><span class="font-medium">Driver:</span> <?php echo htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']); ?></div>
+              <div><span class="font-medium">Vehicle Type:</span> <?php echo htmlspecialchars($booking_row['vehicle_type']); ?></div>
+              <div><span class="font-medium">Pickup:</span> <?php echo htmlspecialchars($booking_row['pickup_location']); ?></div>
+              <div><span class="font-medium">Dropoff:</span> <?php echo htmlspecialchars($booking_row['dropoff_location']); ?></div>
+              <div><span class="font-medium">Pickup Date:</span> <?php echo htmlspecialchars($booking_row['pickup_date']); ?></div>
+              <div><span class="font-medium">Pickup Time:</span> <?php echo htmlspecialchars($booking_row['pickup_time']); ?></div>
+              <div><span class="font-medium">Duration:</span> <?php echo htmlspecialchars($booking_row['duration_days']); ?> day(s)</div>
+              <div><span class="font-medium">Trip Purpose:</span> <?php echo htmlspecialchars($booking_row['trip_purpose']); ?></div>
+              <div><span class="font-medium">Amount:</span> ₦<?php echo number_format($booking_row['amount'], 2); ?></div>
+              <?php if (!empty($booking_row['additional_notes'])): ?>
+                <div class="col-span-2"><span class="font-medium">Notes:</span> <?php echo htmlspecialchars($booking_row['additional_notes']); ?></div>
+              <?php endif; ?>
+            </div>
+          </div>
+          <?php } ?>
           <?php endif; ?>
           <div class="text-gray-600 text-sm mt-2">Please keep this reference for your records. If you need support, quote this reference.</div>
         </div>

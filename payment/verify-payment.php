@@ -1,6 +1,7 @@
 <?php
 session_start();
 include '../include/db.php';
+include '../include/BookingService.php';
 
 // Enable error reporting
 error_reporting(E_ALL);
@@ -14,36 +15,21 @@ if (!isset($_GET['reference'])) {
 
 $reference = $_GET['reference'];
 
+$bookingService = new BookingService($conn);
+
 // Verify the transaction
-$curl = curl_init();
-curl_setopt_array($curl, [
-    CURLOPT_URL => "https://api.paystack.co/transaction/verify/" . rawurlencode($reference),
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        "accept: application/json",
-        "authorization: Bearer sk_test_0ca80ae7e863b608623399886ceb90cd29951246", // Replace with your secret key
-        "cache-control: no-cache"
-    ],
-]);
-
-$response = curl_exec($curl);
-$err = curl_error($curl);
-curl_close($curl);
-
-if ($err) {
-    // Handle error
-    error_log("Paystack verification error for reference $reference: $err");
+$paystackSecretKey = "sk_test_0ca80ae7e863b608623399886ceb90cd29951246"; // Replace with your secret key
+$verifyResult = $bookingService->verifyPayment($reference, $paystackSecretKey);
+if (!$verifyResult['status']) {
+    error_log("Paystack verification error for reference $reference: " . $verifyResult['error']);
     $_SESSION['payment_error'] = "We couldn't verify your payment due to a network issue. If you have been charged, please contact support with your payment reference. Thank you.";
     header("Location: payment-error.php");
     exit();
 }
-
-$tranx = json_decode($response);
-
-if (!$tranx->status) {
-    // Handle error
-    error_log("Paystack API returned failure for reference $reference: " . print_r($tranx, true));
-    $_SESSION['payment_error'] = "Payment verification failed. If you have been charged, please contact support with your payment reference. Thank you.";
+$tranx = $verifyResult['data'];
+if ('success' !== $tranx->data->status) {
+    error_log("Payment not successful for reference $reference. Tranx data: " . print_r($tranx, true));
+    $_SESSION['payment_error'] = "Your payment was not successful. Please try again or contact support if you have been charged.";
     header("Location: payment-error.php");
     exit();
 }
@@ -92,21 +78,11 @@ if ('success' == $tranx->data->status) {
     }
 
     // Prevent duplicate bookings by checking for existing reference
-    $check_sql = "SELECT id FROM bookings WHERE reference = ? LIMIT 1";
-    $check_stmt = $conn->prepare($check_sql);
-    if ($check_stmt) {
-        $check_stmt->bind_param("s", $booking['reference']);
-        $check_stmt->execute();
-        $check_stmt->store_result();
-        if ($check_stmt->num_rows > 0) {
-            // Booking already exists for this payment reference
-            error_log("Duplicate booking attempt for reference: {$booking['reference']} by user_id: {$_SESSION['user_id']}");
-            $_SESSION['payment_error'] = "This booking has already been processed. If you believe you have been charged but did not receive a booking confirmation, please contact our support team with your payment reference.";
-            $check_stmt->close();
-            header("Location: payment-success.php"); // Optionally, redirect to success or error page
-            exit();
-        }
-        $check_stmt->close();
+    if ($bookingService->isDuplicateBooking($booking['reference'])) {
+        error_log("Duplicate booking attempt for reference: {$booking['reference']} by user_id: {$_SESSION['user_id']}");
+        $_SESSION['payment_error'] = "This booking has already been processed. If you believe you have been charged but did not receive a booking confirmation, please contact our support team with your payment reference.";
+        header("Location: payment-success.php"); // Optionally, redirect to success or error page
+        exit();
     }
     
     // Fetch user email, first name, and last name for notification and DB
@@ -157,20 +133,26 @@ if ('success' == $tranx->data->status) {
         $user_last_name
     );
     
-    if ($stmt->execute()) {
+    $user_info = [
+        'email' => $user_email,
+        'first_name' => $user_first_name,
+        'last_name' => $user_last_name
+    ];
+    $createResult = $bookingService->createBooking($booking, $_SESSION['user_id'], $user_info);
+    if ($createResult['success']) {
         // Send notification email
         include_once '../include/SecureMailer.php';
         $mailer = new SecureMailer();
         $mailer->sendBookingConfirmationEmail($user_email, $user_first_name);
         // Store booking reference and ID in session for confirmation page
         $_SESSION['last_booking_reference'] = $booking['reference'];
-        $_SESSION['last_booking_id'] = $stmt->insert_id;
+        $_SESSION['last_booking_id'] = $createResult['booking_id'];
         unset($_SESSION['booking_details']);
         unset($_SESSION['pending_booking']);
         header("Location: payment-success.php");
         exit();
     } else {
-        error_log("Booking insert failed for reference {$booking['reference']}: " . $stmt->error);
+        error_log("Booking insert failed for reference {$booking['reference']}: " . $createResult['error']);
         $_SESSION['payment_error'] = "We couldn't complete your booking due to a technical issue. If you have been charged, please contact support with your payment reference.";
         header("Location: payment-error.php");
         exit();
