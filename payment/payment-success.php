@@ -8,185 +8,146 @@ ini_set('display_errors', 1);
 
 // Redirect if user is not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
-?>
 
+// Fetch user details for sidebar/header
+$user_id = $_SESSION['user_id'];
+$sql = "SELECT * FROM customers WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$picPath = !empty($user['profile_picture']) ? $user['profile_picture'] : "../images/default-profile.png";
+$cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful - Pro-Drivers</title>
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <title>Payment Successful - ProDrivers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        .content {
-            margin-left: 280px;
-            padding: 1.5rem;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            color: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
-        }
-
-        .page-header h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .page-header p {
-            font-size: 1rem;
-            opacity: 0.9;
-            margin: 0;
-        }
-
-        .success-section {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            text-align: center;
-        }
-
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: #dcfce7;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-        }
-
-        .success-icon i {
-            font-size: 2.5rem;
-            color: #16a34a;
-        }
-
-        .success-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-        }
-
-        .success-message {
-            color: #64748b;
-            margin-bottom: 2rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #2563eb;
-            color: white;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background: #1d4ed8;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: #2563eb;
-            border: 1px solid #2563eb;
-        }
-
-        .btn-outline:hover {
-            background: #f8fafc;
-            transform: translateY(-2px);
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                margin-left: 0;
-                padding: 1rem;
-            }
-
-            .page-header {
-                padding: 1.25rem;
-            }
-
-            .success-section {
-                padding: 1.5rem;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-        }
+      body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
-    <!-- Include Sidebar -->
-    <?php include '../partials/sidebar.php'; ?>
-    
-    <!-- Main Content -->
-    <div class="content">
-        <div class="page-header">
-            <h3 class="mb-0">Payment Successful</h3>
-            <p class="mb-0 opacity-75">Your booking has been confirmed</p>
+<body class="bg-gray-50 min-h-screen">
+<div class="flex min-h-screen">
+  <!-- Sidebar (copied from dashboard.php, paths adjusted) -->
+  <aside id="sidebar" class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
+    <div>
+      <div class="flex items-center gap-2 mb-10 px-2">
+        <span class="fa fa-car text-blue-700 text-2xl"></span>
+        <span class="font-bold text-xl text-blue-700">ProDrivers</span>
+      </div>
+      <nav class="flex flex-col gap-1">
+        <a href="../dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-th-large"></i> Dashboard
+        </a>
+        <a href="../book-driver.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-plus-circle"></i> Book a Driver
+        </a>
+        <a href="../my-bookings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-calendar-check"></i> My Bookings
+        </a>
+        <a href="../notifications.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 relative">
+          <i class="fa fa-bell"></i> Notifications
+        </a>
+        <a href="../profile.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-user"></i> My Profile
+        </a>
+        <a href="../settings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-cog"></i> Settings
+        </a>
+        <a href="../support.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-question-circle"></i> Support
+        </a>
+        <a href="../logout.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 mt-2">
+          <i class="fa fa-sign-out-alt"></i> Logout
+        </a>
+      </nav>
+    </div>
+    <div class="px-2 mt-8">
+      <a href="../support.php" class="flex items-center gap-2 text-gray-400 hover:text-blue-600 text-sm">
+        <i class="fa fa-question-circle"></i> Support
+      </a>
+    </div>
+  </aside>
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col">
+    <!-- Header -->
+    <header class="w-full bg-white border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-2xl font-semibold text-gray-900">Payment Successful</h1>
+      <!-- Desktop: Show profile picture and name -->
+      <div class="items-center gap-4 hidden sm:flex">
+        <img src="<?php echo htmlspecialchars($picPath . $cacheBuster); ?>" alt="Profile Picture" class="w-9 h-9 rounded-full object-cover border border-gray-200">
+        <span class="font-medium text-gray-700 hidden sm:block"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
+      </div>
+      <!-- Mobile: Show hamburger menu -->
+      <button class="sm:hidden flex items-center text-2xl text-gray-700" id="mobile-menu-btn" aria-label="Open menu">
+        <i class="fa fa-bars"></i>
+      </button>
+    </header>
+    <main class="flex-1 w-full max-w-2xl mx-auto px-4 py-8">
+      <div class="bg-white rounded-xl shadow p-8 mb-8 text-center">
+        <div class="flex flex-col items-center justify-center mb-6">
+          <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 mb-4">
+            <i class="fa fa-check text-4xl text-green-600"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
+          <p class="text-gray-600 mb-4">Your booking has been confirmed and the driver has been notified.<br>You can view your booking details in your dashboard.</p>
         </div>
-
-        <div class="success-section">
-            <div class="success-icon">
-                <i class="bi bi-check-lg"></i>
-            </div>
-            <h2 class="success-title">Payment Successful!</h2>
-            <p class="success-message">
-                Your booking has been confirmed and the driver has been notified. 
-                You can view your booking details in your dashboard.
-            </p>
-            <div class="action-buttons">
-                <a href="dashboard.php" class="btn btn-primary">
-                    <i class="bi bi-speedometer2"></i>
-                    Go to Dashboard
+        <?php if (isset($_SESSION['last_booking_reference'])): ?>
+        <div class="mb-4">
+          <div class="text-gray-700 text-lg font-semibold">Booking Reference:</div>
+          <div class="text-blue-900 text-xl font-mono font-bold mb-2"><?php echo htmlspecialchars($_SESSION['last_booking_reference']); ?></div>
+          <?php if (isset($_SESSION['last_booking_id'])): ?>
+          <div class="text-gray-500 text-sm">Booking ID: <?php echo htmlspecialchars($_SESSION['last_booking_id']); ?></div>
+          <?php endif; ?>
+          <div class="text-gray-600 text-sm mt-2">Please keep this reference for your records. If you need support, quote this reference.</div>
+        </div>
+        <?php 
+          unset($_SESSION['last_booking_reference']);
+          unset($_SESSION['last_booking_id']);
+        ?>
+        <?php endif; ?>
+        <div class="mb-4">
+          <span class="text-gray-700">Need help? Contact <a href="mailto:support@example.com" class="text-blue-700 underline">support@example.com</a></span>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+          <a href="../dashboard.php" class="w-full sm:w-auto bg-blue-900 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg shadow transition flex items-center justify-center gap-2 text-lg">
+            <i class="fa fa-th-large"></i> Go to Dashboard
+          </a>
+          <a href="../book-driver.php" class="w-full sm:w-auto bg-white border border-blue-900 text-blue-900 font-semibold py-3 px-6 rounded-lg shadow transition flex items-center justify-center gap-2 text-lg hover:bg-blue-50">
+            <i class="fa fa-plus-circle"></i> Book Another Driver
                 </a>
-                <a href="book-driver.php" class="btn btn-outline">
-                    <i class="bi bi-plus-circle"></i>
-                    Book Another Driver
-                </a>
             </div>
+      </div>
+    </main>
         </div>
     </div>
-
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('mobile-menu-btn');
+  var sidebar = document.getElementById('sidebar');
+  if (btn && sidebar) {
+    btn.addEventListener('click', function() {
+      sidebar.classList.toggle('hidden');
+      sidebar.classList.toggle('fixed');
+      sidebar.classList.toggle('z-50');
+      sidebar.classList.toggle('top-0');
+      sidebar.classList.toggle('left-0');
+      sidebar.classList.toggle('h-full');
+      sidebar.classList.toggle('shadow-lg');
+      sidebar.classList.toggle('animate-slideIn');
+    });
+  }
+});
+</script>
 </body>
 </html> 

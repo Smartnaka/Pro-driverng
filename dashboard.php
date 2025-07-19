@@ -110,7 +110,7 @@ $recent_bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 <body class="bg-gray-50 min-h-screen">
 <div class="flex min-h-screen">
   <!-- Sidebar -->
-  <aside class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
+  <aside id="sidebar" class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
     <div>
       <div class="flex items-center gap-2 mb-10 px-2">
         <span class="fa fa-car text-blue-700 text-2xl"></span>
@@ -158,19 +158,15 @@ $recent_bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <!-- Header -->
     <header class="w-full bg-white border-b px-6 py-4 flex items-center justify-between">
       <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
-      <div class="flex items-center gap-6">
-        <a href="notifications.php" class="relative text-gray-500 hover:text-blue-600 text-xl">
-          <i class="fa fa-bell"></i>
-          <?php if ($unread_notifications > 0): ?>
-            <span class="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5"><?php echo $unread_notifications; ?></span>
-          <?php endif; ?>
-        </a>
-        <div class="flex items-center gap-2">
-          <img src="<?php echo htmlspecialchars($picPath . $cacheBuster); ?>" alt="Profile Picture" class="w-9 h-9 rounded-full object-cover border border-gray-200">
-          <span class="font-medium text-gray-700 hidden sm:block"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
-          <i class="fa fa-chevron-down text-gray-400"></i>
-        </div>
+      <!-- Desktop: Show profile picture and name -->
+      <div class="items-center gap-4 hidden sm:flex">
+        <img src="<?php echo htmlspecialchars($picPath . $cacheBuster); ?>" alt="Profile Picture" class="w-9 h-9 rounded-full object-cover border border-gray-200">
+        <span class="font-medium text-gray-700 hidden sm:block"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
       </div>
+      <!-- Mobile: Show hamburger menu -->
+      <button class="sm:hidden flex items-center text-2xl text-gray-700" id="mobile-menu-btn" aria-label="Open menu">
+        <i class="fa fa-bars"></i>
+      </button>
     </header>
 
     <!-- Main Content -->
@@ -362,5 +358,23 @@ $recent_bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     </main>
         </div>
     </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('mobile-menu-btn');
+  var sidebar = document.getElementById('sidebar');
+  if (btn && sidebar) {
+    btn.addEventListener('click', function() {
+      sidebar.classList.toggle('hidden');
+      sidebar.classList.toggle('fixed');
+      sidebar.classList.toggle('z-50');
+      sidebar.classList.toggle('top-0');
+      sidebar.classList.toggle('left-0');
+      sidebar.classList.toggle('h-full');
+      sidebar.classList.toggle('shadow-lg');
+      sidebar.classList.toggle('animate-slideIn');
+    });
+  }
+});
+</script>
 </body>
 </html>

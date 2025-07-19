@@ -32,7 +32,8 @@ curl_close($curl);
 
 if ($err) {
     // Handle error
-    $_SESSION['payment_error'] = "Error verifying payment: " . $err;
+    error_log("Paystack verification error for reference $reference: $err");
+    $_SESSION['payment_error'] = "We couldn't verify your payment due to a network issue. If you have been charged, please contact support with your payment reference. Thank you.";
     header("Location: payment-error.php");
     exit();
 }
@@ -41,13 +42,14 @@ $tranx = json_decode($response);
 
 if (!$tranx->status) {
     // Handle error
-    $_SESSION['payment_error'] = "Payment verification failed: " . $tranx->message;
+    error_log("Paystack API returned failure for reference $reference: " . print_r($tranx, true));
+    $_SESSION['payment_error'] = "Payment verification failed. If you have been charged, please contact support with your payment reference. Thank you.";
     header("Location: payment-error.php");
     exit();
 }
 
 if ('success' == $tranx->data->status) {
-    // Payment successful
+    // Payment successful (confirmed from backend)
     // Check if booking details exist in session
     if (!isset($_SESSION['booking_details']) || empty($_SESSION['booking_details'])) {
         $_SESSION['payment_error'] = "Booking details not found. Please try booking again.";
@@ -75,26 +77,61 @@ if ('success' == $tranx->data->status) {
     }
     
     if (!empty($missing_fields)) {
-        $_SESSION['payment_error'] = "Missing required booking information: " . implode(', ', $missing_fields) . ". Please try booking again.";
+        error_log("Booking failed for user_id {$_SESSION['user_id']} due to missing fields: " . implode(', ', $missing_fields));
+        $_SESSION['payment_error'] = "Some required booking information is missing. Please try booking again or contact support if the problem persists.";
         header("Location: payment-error.php");
         exit();
     }
     
     // Check if user is logged in
     if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
-        $_SESSION['payment_error'] = "User session not found. Please login and try again.";
+        error_log("Booking failed: user session not found for reference {$booking['reference']}");
+        $_SESSION['payment_error'] = "Your session has expired. Please log in and try again.";
         header("Location: payment-error.php");
         exit();
     }
+
+    // Prevent duplicate bookings by checking for existing reference
+    $check_sql = "SELECT id FROM bookings WHERE reference = ? LIMIT 1";
+    $check_stmt = $conn->prepare($check_sql);
+    if ($check_stmt) {
+        $check_stmt->bind_param("s", $booking['reference']);
+        $check_stmt->execute();
+        $check_stmt->store_result();
+        if ($check_stmt->num_rows > 0) {
+            // Booking already exists for this payment reference
+            error_log("Duplicate booking attempt for reference: {$booking['reference']} by user_id: {$_SESSION['user_id']}");
+            $_SESSION['payment_error'] = "This booking has already been processed. If you believe you have been charged but did not receive a booking confirmation, please contact our support team with your payment reference.";
+            $check_stmt->close();
+            header("Location: payment-success.php"); // Optionally, redirect to success or error page
+            exit();
+        }
+        $check_stmt->close();
+    }
     
+    // Fetch user email, first name, and last name for notification and DB
+    $user_id = $_SESSION['user_id'];
+    $user_email = '';
+    $user_first_name = '';
+    $user_last_name = '';
+    $user_sql = "SELECT email, first_name, last_name FROM customers WHERE id = ? LIMIT 1";
+    $user_stmt = $conn->prepare($user_sql);
+    if ($user_stmt) {
+        $user_stmt->bind_param("i", $user_id);
+        $user_stmt->execute();
+        $user_stmt->bind_result($user_email, $user_first_name, $user_last_name);
+        $user_stmt->fetch();
+        $user_stmt->close();
+    }
     // Prepare the SQL statement with proper error handling
     $sql = "INSERT INTO bookings (
-        user_id, driver_id, pickup_location, dropoff_location, pickup_date, pickup_time, duration_days, vehicle_type, trip_purpose, additional_notes, status, amount, reference, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, NOW())";
+        user_id, driver_id, pickup_location, dropoff_location, pickup_date, pickup_time, duration_days, vehicle_type, trip_purpose, additional_notes, status, amount, reference, user_email, user_first_name, user_last_name, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?, ?, ?, ?, ?, NOW())";
     
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
-        $_SESSION['payment_error'] = "Database error: " . $conn->error;
+        error_log("Database error on booking insert for reference {$booking['reference']}: " . $conn->error);
+        $_SESSION['payment_error'] = "We encountered a technical issue while saving your booking. If you have been charged, please contact support with your payment reference.";
         header("Location: payment-error.php");
         exit();
     }
@@ -102,7 +139,7 @@ if ('success' == $tranx->data->status) {
     $additional_notes = isset($booking['additional_notes']) ? $booking['additional_notes'] : '';
     
     $stmt->bind_param(
-        "iisssissssds",
+        "iisssissssdssss",
         $_SESSION['user_id'],
         $booking['driver_id'],
         $booking['pickup_location'],
@@ -114,39 +151,34 @@ if ('success' == $tranx->data->status) {
         $booking['trip_purpose'],
         $additional_notes,
         $booking['amount'],
-        $booking['reference']
+        $booking['reference'],
+        $user_email,
+        $user_first_name,
+        $user_last_name
     );
     
     if ($stmt->execute()) {
-        // Fetch user email and first name for notification
-        $user_id = $_SESSION['user_id'];
-        $user_email = '';
-        $user_first_name = '';
-        $user_sql = "SELECT email, first_name FROM customers WHERE id = ? LIMIT 1";
-        $user_stmt = $conn->prepare($user_sql);
-        if ($user_stmt) {
-            $user_stmt->bind_param("i", $user_id);
-            $user_stmt->execute();
-            $user_stmt->bind_result($user_email, $user_first_name);
-            $user_stmt->fetch();
-            $user_stmt->close();
-        }
         // Send notification email
         include_once '../include/SecureMailer.php';
         $mailer = new SecureMailer();
-        $mailer->sendWelcomeEmail($user_email, $user_first_name);
+        $mailer->sendBookingConfirmationEmail($user_email, $user_first_name);
+        // Store booking reference and ID in session for confirmation page
+        $_SESSION['last_booking_reference'] = $booking['reference'];
+        $_SESSION['last_booking_id'] = $stmt->insert_id;
         unset($_SESSION['booking_details']);
         unset($_SESSION['pending_booking']);
         header("Location: payment-success.php");
         exit();
     } else {
-        $_SESSION['payment_error'] = "Error saving booking: " . $stmt->error;
+        error_log("Booking insert failed for reference {$booking['reference']}: " . $stmt->error);
+        $_SESSION['payment_error'] = "We couldn't complete your booking due to a technical issue. If you have been charged, please contact support with your payment reference.";
         header("Location: payment-error.php");
         exit();
     }
 } else {
     // Payment failed
-    $_SESSION['payment_error'] = "Payment was not successful";
+    error_log("Payment not successful for reference $reference. Tranx data: " . print_r($tranx, true));
+    $_SESSION['payment_error'] = "Your payment was not successful. Please try again or contact support if you have been charged.";
     header("Location: payment-error.php");
     exit();
 }

@@ -92,12 +92,12 @@ if (isset($_SESSION['pending_booking']) && !empty($_SESSION['pending_booking']))
 <body class="bg-gray-50 min-h-screen">
 <div class="flex min-h-screen">
   <!-- Sidebar (copied from dashboard.php) -->
-  <aside class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
+  <aside id="sidebar" class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
     <div>
       <div class="flex items-center gap-2 mb-10 px-2">
         <span class="fa fa-car text-blue-700 text-2xl"></span>
         <span class="font-bold text-xl text-blue-700">ProDrivers</span>
-      </div>
+        </div>
       <nav class="flex flex-col gap-1">
         <a href="../dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
           <i class="fa fa-th-large"></i> Dashboard
@@ -124,22 +124,27 @@ if (isset($_SESSION['pending_booking']) && !empty($_SESSION['pending_booking']))
           <i class="fa fa-sign-out-alt"></i> Logout
         </a>
       </nav>
-    </div>
+                </div>
     <div class="px-2 mt-8">
       <a href="../support.php" class="flex items-center gap-2 text-gray-400 hover:text-blue-600 text-sm">
         <i class="fa fa-question-circle"></i> Support
       </a>
-    </div>
+                </div>
   </aside>
   <!-- Main Content Area -->
   <div class="flex-1 flex flex-col">
     <!-- Header -->
     <header class="w-full bg-white border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
       <h1 class="text-2xl font-semibold text-gray-900">Complete Payment</h1>
-      <div class="flex items-center gap-4">
+      <!-- Desktop: Show profile picture and name -->
+      <div class="items-center gap-4 hidden sm:flex">
         <img src="<?php echo htmlspecialchars(!empty($user['profile_picture']) ? $user['profile_picture'] : '../images/default-profile.png'); ?>" alt="Profile Picture" class="w-9 h-9 rounded-full object-cover border border-gray-200">
         <span class="font-medium text-gray-700 hidden sm:block"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
       </div>
+      <!-- Mobile: Show hamburger menu -->
+      <button class="sm:hidden flex items-center text-2xl text-gray-700" id="mobile-menu-btn" aria-label="Open menu">
+        <i class="fa fa-bars"></i>
+      </button>
     </header>
     <main class="flex-1 w-full max-w-2xl mx-auto px-4 py-8">
       <div class="bg-white rounded-xl shadow p-8 mb-8">
@@ -149,32 +154,50 @@ if (isset($_SESSION['pending_booking']) && !empty($_SESSION['pending_booking']))
           <div class="flex justify-between text-gray-600 mb-2"><span>Vehicle Type:</span><span><?= htmlspecialchars($driver['drive']) ?></span></div>
           <div class="flex justify-between text-gray-600 mb-2"><span>Amount:</span><span>₦<?= number_format($amount, 2) ?></span></div>
           <div class="flex justify-between font-semibold text-gray-900 border-t pt-3 mt-3"><span>Total Amount:</span><span>₦<?= number_format($amount, 2) ?></span></div>
-        </div>
+                </div>
         <button onclick="payWithPaystack()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-3 rounded-lg shadow transition flex items-center justify-center gap-2 text-lg">
           <i class="fa fa-credit-card"></i> Pay Now
-        </button>
+            </button>
       </div>
     </main>
-  </div>
-</div>
-<script>
-    function payWithPaystack() {
-        const handler = PaystackPop.setup({
-            key: 'pk_test_9da1212b6c99a9b813dc323aa680e01bfcc8e52d', // Replace with your public key
-            email: '<?= htmlspecialchars($user['email']) ?>',
-            amount: <?= $amount * 100 ?>, // Convert to kobo
-            currency: 'NGN',
-            ref: '<?= $reference ?>',
-            callback: function(response) {
-                // Make an AJAX call to your server with the reference to verify the transaction
-                window.location.href = 'verify-payment.php?reference=' + response.reference;
-            },
-            onClose: function() {
-                alert('Transaction was not completed, window closed.');
-            }
-        });
-        handler.openIframe();
-    }
+        </div>
+    </div>
+    <script>
+        function payWithPaystack() {
+            const handler = PaystackPop.setup({
+                key: 'pk_test_9da1212b6c99a9b813dc323aa680e01bfcc8e52d', // Replace with your public key
+                email: '<?= htmlspecialchars($user['email']) ?>',
+                amount: <?= $amount * 100 ?>, // Convert to kobo
+                currency: 'NGN',
+                ref: '<?= $reference ?>',
+                callback: function(response) {
+                    // Make an AJAX call to your server with the reference to verify the transaction
+                    window.location.href = 'verify-payment.php?reference=' + response.reference;
+                },
+                onClose: function() {
+                    alert('Transaction was not completed, window closed.');
+                }
+            });
+            handler.openIframe();
+        }
+    </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('mobile-menu-btn');
+  var sidebar = document.getElementById('sidebar');
+  if (btn && sidebar) {
+    btn.addEventListener('click', function() {
+      sidebar.classList.toggle('hidden');
+      sidebar.classList.toggle('fixed');
+      sidebar.classList.toggle('z-50');
+      sidebar.classList.toggle('top-0');
+      sidebar.classList.toggle('left-0');
+      sidebar.classList.toggle('h-full');
+      sidebar.classList.toggle('shadow-lg');
+      sidebar.classList.toggle('animate-slideIn');
+    });
+  }
+});
 </script>
 </body>
 </html> 

@@ -1,8 +1,19 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
 /**
  * Secure Mailer Class
  * Handles email sending with secure credential management
  */
+$envFile = __DIR__ . '/../.env';
+if (!file_exists($envFile)) {
+    die('DEBUG: .env file not found at: ' . $envFile);
+} else {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    echo "<pre>DEBUG: .env file found. Contents:\n";
+    print_r($lines);
+    echo "</pre>";
+}
+
 class SecureMailer {
     private $mailer;
     private $config;
@@ -156,6 +167,26 @@ class SecureMailer {
             error_log("Contact form email sent successfully from: " . $email);
             return true;
             
+        } catch (Exception $e) {
+            error_log("PHPMailer Error: " . $this->mailer->ErrorInfo);
+            return false;
+        }
+    }
+
+    /**
+     * Send booking/payment confirmation email to user
+     */
+    public function sendBookingConfirmationEmail($email, $firstName) {
+        try {
+            $this->mailer->setFrom($this->config['SMTP_USERNAME'], 'PRODRIVERS');
+            $this->mailer->addAddress($email, $firstName);
+            $this->mailer->isHTML(true);
+            $this->mailer->Subject = '✅ Booking Confirmed - Payment Successful';
+            $this->mailer->Body = "<h2>Hello {$firstName},</h2><p>Your payment was successful and your driver booking is now confirmed!</p><p>Thank you for choosing <strong>Pro-Drivers</strong>. We will contact you soon with your driver details.</p><br><hr><p style='font-size: 12px; color: #777;'>This is an automated confirmation for your recent booking and payment on Pro-Drivers.</p>";
+            $this->mailer->AltBody = "Hello {$firstName},\n\nYour payment was successful and your driver booking is now confirmed! Thank you for choosing Pro-Drivers.";
+            $this->mailer->send();
+            error_log("Booking confirmation email sent successfully to: " . $email);
+            return true;
         } catch (Exception $e) {
             error_log("PHPMailer Error: " . $this->mailer->ErrorInfo);
             return false;
