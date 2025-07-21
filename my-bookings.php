@@ -48,19 +48,19 @@ $bookings = $bookings_result->fetch_all(MYSQLI_ASSOC);
 function getStatusBadgeClass($status) {
     switch ($status) {
         case 'pending_payment':
-            return 'badge bg-warning text-dark';
+            return 'bg-warning text-dark';
         case 'pending_driver_response':
-            return 'badge bg-info';
+            return 'bg-info';
         case 'confirmed':
-            return 'badge bg-success';
+            return 'bg-success';
         case 'in_progress':
-            return 'badge bg-primary';
+            return 'bg-primary';
         case 'completed':
-            return 'badge bg-secondary';
+            return 'bg-secondary';
         case 'cancelled':
-            return 'badge bg-danger';
+            return 'bg-danger';
         default:
-            return 'badge bg-secondary';
+            return 'bg-secondary';
     }
 }
 
@@ -90,514 +90,201 @@ function getStatusDisplayText($status) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Bookings - Pro-Drivers</title>
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>My Bookings - ProDrivers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        .content {
-            margin-left: 280px;
-            padding: 2rem;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, #0d6efd, #0099ff);
-            color: white;
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-        }
-
-        .page-header h3 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .booking-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border: 1px solid #e5e7eb;
-        }
-
-        .booking-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .driver-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .driver-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 1rem;
-            border: 3px solid #e5e7eb;
-        }
-
-        .driver-details h6 {
-            margin: 0;
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .driver-details p {
-            margin: 0;
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-
-        .driver-rating {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            margin-top: 0.25rem;
-        }
-
-        .driver-rating .bi-star-fill {
-            color: #fbbf24;
-        }
-
-        .booking-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .detail-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            margin-bottom: 0.25rem;
-        }
-
-        .detail-value {
-            font-weight: 500;
-            color: #1e293b;
-        }
-
-        .booking-actions {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-sm {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.875rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #64748b;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1030;
-        }
-
-        .overlay.active {
-            display: block;
-        }
-
-        .mobile-nav {
-            display: none;
-            padding: 1rem;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            position: sticky;
-            top: 0;
-            z-index: 1020;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                margin-left: 0;
-                padding: 1rem;
-            }
-            
-            .page-header {
-                padding: 1.5rem;
-            }
-            
-            .booking-details {
-                grid-template-columns: 1fr;
-            }
-            
-            .mobile-nav {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-        }
-
-        .hamburger-btn {
-            border: none;
-            background: none;
-            padding: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #1e293b;
-            font-size: 1.25rem;
-        }
-
-        .hamburger-btn:hover {
-            color: #0d6efd;
-        }
-
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 0.375rem 0.75rem;
-        }
-
-        .amount-display {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #059669;
-        }
-
-        .reference-code {
-            font-family: 'Courier New', monospace;
-            background: #f1f5f9;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-        }
-
-        .toast-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            color: white;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        .toast-notification.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .toast-notification.success {
-            background-color: #28a745;
-        }
-        .toast-notification.error {
-            background-color: #dc3545;
-        }
+      body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
-    <!-- Toast Notification -->
-    <div id="toast-notification" class="toast-notification"></div>
-
-    <!-- Include Sidebar -->
-    <?php include 'partials/sidebar.php'; ?>
-
-    <!-- Mobile Navigation -->
-    <nav class="mobile-nav">
-        <button class="hamburger-btn" onclick="toggleSidebar()">
-            <i class="bi bi-list"></i>
-            <span class="d-none d-sm-inline">Menu</span>
-        </button>
-        <span class="fw-bold">My Bookings</span>
-        <div style="width: 2rem;"><!-- Empty div for flex spacing --></div>
-    </nav>
-
-    <!-- Overlay -->
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-    <!-- Main Content -->
-    <div class="content">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h3>My Bookings</h3>
-            <p class="mb-0">Track all your driver bookings and their current status</p>
-        </div>
-
-        <?php if (empty($bookings)): ?>
-            <!-- Empty State -->
-            <div class="empty-state">
-                <i class="bi bi-calendar-x"></i>
-                <h5>No bookings yet</h5>
-                <p>You haven't made any bookings yet. Start by booking a driver for your journey.</p>
-                <a href="book-driver.php" class="btn btn-primary">
-                    <i class="bi bi-car-front me-2"></i>Book a Driver
-                </a>
-            </div>
-        <?php else: ?>
-            <!-- Bookings List -->
-            <?php foreach ($bookings as $booking): ?>
-                <div class="booking-card" id="booking-<?= $booking['id'] ?>">
-                    <!-- Driver Information -->
-                    <div class="driver-info">
-                        <?php if (!empty($booking['driver_profile_picture'])): ?>
-                            <img src="<?= htmlspecialchars($booking['driver_profile_picture']) ?>" 
-                                 alt="Driver Profile" class="driver-avatar">
-                        <?php else: ?>
-                            <img src="images/default-profile.png" alt="Default Profile" class="driver-avatar">
-                        <?php endif; ?>
-                        
-                        <div class="driver-details">
-                            <h6>
-                                <?php if ($booking['driver_first_name']): ?>
-                                    <?= htmlspecialchars($booking['driver_first_name'] . ' ' . $booking['driver_last_name']) ?>
-                                <?php else: ?>
-                                    <span class="text-muted">Driver not assigned yet</span>
-                                <?php endif; ?>
-                            </h6>
-                            <?php if ($booking['driver_phone']): ?>
-                                <p><i class="bi bi-telephone me-1"></i><?= htmlspecialchars($booking['driver_phone']) ?></p>
-                            <?php endif; ?>
-                        </div>
-                        
-                        <div class="ms-auto">
-                            <span class="status-badge <?= getStatusBadgeClass($booking['status']) ?>">
-                                <?= getStatusDisplayText($booking['status']) ?>
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Booking Details -->
-                    <div class="booking-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Pickup Location</span>
-                            <span class="detail-value"><?= htmlspecialchars($booking['pickup_location']) ?></span>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-label">Destination</span>
-                            <span class="detail-value"><?= htmlspecialchars($booking['dropoff_location']) ?></span>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-label">Date & Time</span>
-                            <span class="detail-value">
-                                <?= date('M j, Y', strtotime($booking['pickup_date'])) ?>
-                                <br>
-                                <small class="text-muted"><?= date('g:i A', strtotime($booking['pickup_time'])) ?></small>
-                            </span>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <span class="detail-label">Amount</span>
-                            <span class="amount-display">₦<?= number_format($booking['amount'], 2) ?></span>
-                        </div>
-                        
-                        <?php if (!empty($booking['payment_reference'])): ?>
-                        <div class="detail-item">
-                            <span class="detail-label">Payment Reference</span>
-                            <span class="reference-code"><?= htmlspecialchars($booking['payment_reference']) ?></span>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <div class="detail-item">
-                            <span class="detail-label">Booked On</span>
-                            <span class="detail-value"><?= date('M j, Y g:i A', strtotime($booking['created_at'])) ?></span>
-                        </div>
-                    </div>
-
-                    <!-- Booking Actions -->
-                    <div class="booking-actions">
-                        <?php if ($booking['status'] === 'pending_payment'): ?>
-                            <a href="payment/payment.php?booking_id=<?= $booking['id'] ?>" 
-                               class="btn btn-primary btn-sm">
-                                <i class="bi bi-credit-card me-1"></i>Complete Payment
-                            </a>
-                        <?php endif; ?>
-                        
-                        <?php if ($booking['status'] === 'confirmed' || $booking['status'] === 'in_progress'): ?>
-                            <button class="btn btn-success btn-sm" onclick="contactDriver('<?= $booking['driver_phone'] ?>')">
-                                <i class="bi bi-telephone me-1"></i>Contact Driver
-                            </button>
-                        <?php endif; ?>
-                        
-                        <?php if (!in_array($booking['status'], ['completed', 'cancelled'])): ?>
-                            <button class="btn btn-danger btn-sm" onclick="cancelBooking(<?= $booking['id'] ?>)">
-                                <i class="bi bi-x-circle me-1"></i>Cancel Booking
-                            </button>
-                        <?php endif; ?>
-                        
-                        <button class="btn btn-outline-secondary btn-sm" onclick="viewBookingDetails(<?= $booking['id'] ?>)">
-                            <i class="bi bi-eye me-1"></i>View Details
-                        </button>
-                    </div>
-                </div>
-                <!-- Booking Details Modal -->
-                <div class="modal fade" id="bookingDetailsModal<?= $booking['id'] ?>" tabindex="-1" aria-labelledby="bookingDetailsLabel<?= $booking['id'] ?>" aria-hidden="true">
-                  <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="bookingDetailsLabel<?= $booking['id'] ?>">Booking Details</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body">
-                        <ul class="list-group list-group-flush">
-                          <li class="list-group-item"><strong>Pickup Location:</strong> <?= htmlspecialchars($booking['pickup_location']) ?></li>
-                          <li class="list-group-item"><strong>Destination:</strong> <?= htmlspecialchars($booking['dropoff_location']) ?></li>
-                          <li class="list-group-item"><strong>Date:</strong> <?= date('M j, Y', strtotime($booking['pickup_date'])) ?></li>
-                          <li class="list-group-item"><strong>Time:</strong> <?= date('g:i A', strtotime($booking['pickup_time'])) ?></li>
-                          <li class="list-group-item"><strong>Amount:</strong> ₦<?= number_format($booking['amount'], 2) ?></li>
-                          <li class="list-group-item"><strong>Status:</strong> <?= getStatusDisplayText($booking['status']) ?></li>
-                          <li class="list-group-item"><strong>Booked On:</strong> <?= date('M j, Y g:i A', strtotime($booking['created_at'])) ?></li>
-                          <?php if (!empty($booking['payment_reference'])): ?>
-                          <li class="list-group-item"><strong>Payment Reference:</strong> <?= htmlspecialchars($booking['payment_reference']) ?></li>
-                          <?php endif; ?>
-                          <?php if (!empty($booking['driver_first_name'])): ?>
-                          <li class="list-group-item"><strong>Driver:</strong> <?= htmlspecialchars($booking['driver_first_name'] . ' ' . $booking['driver_last_name']) ?></li>
-                          <li class="list-group-item"><strong>Driver Phone:</strong> <?= htmlspecialchars($booking['driver_phone']) ?></li>
-                          <?php endif; ?>
-                        </ul>
-                        <?php if (!empty($booking['additional_notes'])): ?>
-                        <div class="mt-3">
-                          <strong>Additional Notes:</strong>
-                          <div><?= nl2br(htmlspecialchars($booking['additional_notes'])) ?></div>
-                        </div>
-                        <?php endif; ?>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+<body class="bg-gray-50 min-h-screen">
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-64 bg-white border-r flex flex-col justify-between py-6 px-4 hidden md:flex">
+    <div>
+      <div class="flex items-center gap-2 mb-10 px-2">
+        <span class="fa fa-car text-blue-700 text-2xl"></span>
+        <span class="font-bold text-xl text-blue-700">ProDrivers</span>
+      </div>
+      <nav class="flex flex-col gap-1">
+        <a href="dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-th-large"></i> Dashboard
+        </a>
+        <a href="book-driver.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-plus-circle"></i> Book a Driver
+        </a>
+        <a href="my-bookings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-blue-700 bg-blue-50">
+          <i class="fa fa-calendar-check"></i> My Bookings
+        </a>
+        <a href="notifications.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 relative">
+          <i class="fa fa-bell"></i> Notifications
+        </a>
+        <a href="profile.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-user"></i> My Profile
+        </a>
+        <a href="settings.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-cog"></i> Settings
+        </a>
+        <a href="support.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">
+          <i class="fa fa-question-circle"></i> Support
+        </a>
+        <a href="logout.php" class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 mt-2">
+          <i class="fa fa-sign-out-alt"></i> Logout
+        </a>
+      </nav>
     </div>
-    <script src="assets/javascript/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/javascript/jquery.min.js"></script>
-    <script>
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast-notification');
-            toast.textContent = message;
-            toast.className = 'toast-notification ' + type;
-            toast.classList.add('show');
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
-            document.body.style.overflow = document.getElementById('sidebar').classList.contains('active') ? 'hidden' : '';
-        }
-
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(event) {
-            const sidebar = document.getElementById('sidebar');
-            const hamburgerBtn = document.querySelector('.hamburger-btn');
-            
-            if (window.innerWidth <= 768 && 
-                sidebar.classList.contains('active') && 
-                !sidebar.contains(event.target) && 
-                !hamburgerBtn.contains(event.target)) {
-                toggleSidebar();
-            }
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                document.getElementById('sidebar').classList.remove('active');
-                document.getElementById('overlay').classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        });
-
-        function contactDriver(phone) {
-            if (phone) {
-                window.open(`tel:${phone}`, '_self');
-            } else {
-                alert('Driver phone number not available');
-            }
-        }
-
-        function cancelBooking(bookingId) {
-            if (confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
-                fetch('api/cancel_booking.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `booking_id=${bookingId}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showToast(data.message, 'success');
-                        // Update the UI
-                        const bookingCard = document.querySelector(`#booking-${bookingId}`);
-                        if (bookingCard) {
-                            // Update status badge
-                            const statusBadge = bookingCard.querySelector('.status-badge');
-                            statusBadge.textContent = 'Cancelled';
-                            statusBadge.className = 'status-badge badge bg-danger';
-                            
-                            // Remove action buttons
-                            const actions = bookingCard.querySelector('.booking-actions');
-                            actions.innerHTML = '<button class="btn btn-outline-secondary btn-sm" onclick="viewBookingDetails(' + bookingId + ')"><i class="bi bi-eye me-1"></i>View Details</button>';
-                        }
-                    } else {
-                        showToast(data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('An unexpected error occurred.', 'error');
-                });
-            }
-        }
-
-        function viewBookingDetails(bookingId) {
-            var modal = new bootstrap.Modal(document.getElementById('bookingDetailsModal' + bookingId));
-            modal.show();
-        }
-    </script>
+    <div class="px-2 mt-8">
+      <a href="support.php" class="flex items-center gap-2 text-gray-400 hover:text-blue-600 text-sm">
+        <i class="fa fa-question-circle"></i> Support
+      </a>
+    </div>
+  </aside>
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col">
+    <!-- Header -->
+    <header class="w-full bg-white border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-2xl font-semibold text-gray-900">My Bookings</h1>
+      <!-- Desktop: Show profile picture and name -->
+      <div class="items-center gap-4 hidden sm:flex">
+        <img src="<?php echo htmlspecialchars($user['profile_picture'] ?? 'images/default-profile.png'); ?>" alt="Profile Picture" class="w-9 h-9 rounded-full object-cover border border-gray-200">
+        <span class="font-medium text-gray-700 hidden sm:block"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
+      </div>
+      <!-- Mobile: Show hamburger menu -->
+      <button class="sm:hidden flex items-center text-2xl text-gray-700" id="mobile-menu-btn" aria-label="Open menu">
+        <i class="fa fa-bars"></i>
+      </button>
+    </header>
+    <!-- Main Content -->
+    <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-8">
+      <div class="bg-white rounded-xl shadow p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Your Bookings</h2>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <?php foreach ($bookings as $i => $booking): ?>
+          <div class="bg-gray-50 rounded-lg shadow p-5 flex flex-col gap-3">
+            <div class="flex items-center gap-3 mb-2">
+              <img src="<?php echo htmlspecialchars($booking['driver_profile_picture'] ?? 'images/default-profile.png'); ?>" alt="Driver" class="w-12 h-12 rounded-full object-cover border border-gray-200">
+              <div>
+                <div class="font-semibold text-gray-800"><?php echo htmlspecialchars($booking['driver_first_name'] . ' ' . $booking['driver_last_name']); ?></div>
+                <div class="text-xs text-gray-500">Booking #<?php echo $i + 1; ?></div>
+              </div>
+              <div class="ml-auto">
+                <span class="inline-block px-2 py-1 rounded text-xs font-semibold <?php echo getStatusBadgeClass($booking['status']); ?>">
+                  <?php echo getStatusDisplayText($booking['status']); ?>
+                </span>
+              </div>
+            </div>
+            <div class="text-sm text-gray-700 flex flex-col gap-1">
+              <div><span class="font-medium">Pickup:</span> <?php echo htmlspecialchars($booking['pickup_location']); ?></div>
+              <div><span class="font-medium">Dropoff:</span> <?php echo htmlspecialchars($booking['dropoff_location']); ?></div>
+              <div><span class="font-medium">Date:</span> <?php echo htmlspecialchars($booking['pickup_date']); ?></div>
+              <div><span class="font-medium">Time:</span> <?php echo htmlspecialchars($booking['pickup_time']); ?></div>
+              <div><span class="font-medium">Amount:</span> ₦<?php echo number_format($booking['amount'], 2); ?></div>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-2">
+              <a href="payment/payment-success.php?reference=<?php echo urlencode($booking['reference']); ?>" class="bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 text-xs font-medium flex items-center gap-1"><i class="fa fa-receipt"></i> Receipt</a>
+              <?php if (!in_array($booking['status'], ['completed', 'cancelled'])): ?>
+              <button onclick="cancelBooking(<?php echo $booking['id']; ?>)" class="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 text-xs font-medium flex items-center gap-1"><i class="fa fa-times"></i> Cancel</button>
+              <?php endif; ?>
+              <button onclick="viewBookingDetails(<?php echo $booking['id']; ?>)" class="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200 text-xs font-medium flex items-center gap-1"><i class="fa fa-eye"></i> View</button>
+            </div>
+          </div>
+          <?php endforeach; ?>
+        </div>
+        <?php if (empty($bookings)): ?>
+        <div class="text-center text-gray-500 py-8">You have no bookings yet.</div>
+        <?php endif; ?>
+      </div>
+    </main>
+  </div>
+</div>
+<!-- Cancel Confirmation Modal -->
+<div id="cancelModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+    <h3 class="text-lg font-semibold mb-2 text-gray-800">Cancel Booking</h3>
+    <p class="text-gray-600 mb-4">Are you sure you want to cancel this booking?</p>
+    <div class="flex justify-end gap-2">
+      <button id="cancelModalNo" class="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300">No</button>
+      <button id="cancelModalYes" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+<!-- Toast Notification -->
+<div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-2 items-end"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('mobile-menu-btn');
+  var sidebar = document.getElementById('sidebar');
+  if (btn && sidebar) {
+    btn.addEventListener('click', function() {
+      sidebar.classList.toggle('hidden');
+      sidebar.classList.toggle('fixed');
+      sidebar.classList.toggle('z-50');
+      sidebar.classList.toggle('top-0');
+      sidebar.classList.toggle('left-0');
+      sidebar.classList.toggle('h-full');
+      sidebar.classList.toggle('shadow-lg');
+      sidebar.classList.toggle('animate-slideIn');
+    });
+  }
+});
+let cancelBookingId = null;
+function cancelBooking(bookingId) {
+  cancelBookingId = bookingId;
+  document.getElementById('cancelModal').classList.remove('hidden');
+}
+document.getElementById('cancelModalNo').onclick = function() {
+  document.getElementById('cancelModal').classList.add('hidden');
+  cancelBookingId = null;
+};
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `px-4 py-3 rounded shadow text-white text-sm mb-2 animate-fade-in ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+  toast.innerText = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('opacity-0');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+document.getElementById('cancelModalYes').onclick = function() {
+  if (!cancelBookingId) return;
+  fetch('api/cancel_booking.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'booking_id=' + encodeURIComponent(cancelBookingId)
+  })
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById('cancelModal').classList.add('hidden');
+    cancelBookingId = null;
+    if (data.success) {
+      showToast('Booking cancelled successfully.', 'success');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      showToast(data.message || 'Failed to cancel booking.', 'error');
+    }
+  })
+  .catch(() => {
+    document.getElementById('cancelModal').classList.add('hidden');
+    cancelBookingId = null;
+    showToast('Network error. Please try again.', 'error');
+  });
+};
+function viewBookingDetails(bookingId) {
+  // Implement modal or redirect to details page
+  alert('Booking details for ID: ' + bookingId);
+}
+</script>
+<style>
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease;
+}
+</style>
 </body>
 </html> 

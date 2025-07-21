@@ -22,6 +22,30 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 $picPath = !empty($user['profile_picture']) ? $user['profile_picture'] : "../images/default-profile.png";
 $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
+
+// Fetch booking by reference from URL
+$booking_row = null;
+$driver = null;
+$reference = $_GET['reference'] ?? null;
+if ($reference) {
+    $booking_sql = "SELECT * FROM bookings WHERE reference = ? AND user_id = ? LIMIT 1";
+    $booking_stmt = $conn->prepare($booking_sql);
+    $booking_stmt->bind_param("si", $reference, $user_id);
+    $booking_stmt->execute();
+    $booking_result = $booking_stmt->get_result();
+    $booking_row = $booking_result->fetch_assoc();
+    $booking_stmt->close();
+    if ($booking_row) {
+        // Fetch driver details
+        $driver_sql = "SELECT first_name, last_name FROM drivers WHERE id = ? LIMIT 1";
+        $driver_stmt = $conn->prepare($driver_sql);
+        $driver_stmt->bind_param("i", $booking_row['driver_id']);
+        $driver_stmt->execute();
+        $driver_result = $driver_stmt->get_result();
+        $driver = $driver_result->fetch_assoc();
+        $driver_stmt->close();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,6 +58,12 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
       body { font-family: 'Inter', sans-serif; }
+      @media print {
+        body, html { background: #fff !important; }
+        #sidebar, header, .flex.flex-col.sm\:flex-row.gap-4.justify-center.mt-6, .flex.flex-col.sm\:flex-row.gap-2.justify-center.mt-4, .mb-4 > .text-gray-700.text-lg.font-semibold, .mb-4 > .text-gray-600.text-sm.mt-2, .mb-4 > .text-gray-700 { display: none !important; }
+        #receipt-area { box-shadow: none !important; border: none !important; margin: 0 auto !important; }
+        button, .fa-print, .fa-download { display: none !important; }
+      }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -102,35 +132,28 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
           <h2 class="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
           <p class="text-gray-600 mb-4">Your booking has been confirmed and the driver has been notified.<br>You can view your booking details in your dashboard.</p>
         </div>
-        <?php if (isset($_SESSION['last_booking_reference'])): ?>
+        <?php if ($reference && $booking_row): ?>
         <div class="mb-4">
           <div class="text-gray-700 text-lg font-semibold">Booking Reference:</div>
-          <div class="text-blue-900 text-xl font-mono font-bold mb-2"><?php echo htmlspecialchars($_SESSION['last_booking_reference']); ?></div>
-          <?php if (isset($_SESSION['last_booking_id'])): ?>
-          <div class="text-gray-500 text-sm">Booking ID: <?php echo htmlspecialchars($_SESSION['last_booking_id']); ?></div>
-          <?php 
-            // Fetch booking summary
-            $booking_id = $_SESSION['last_booking_id'];
-            $booking_sql = "SELECT * FROM bookings WHERE id = ? AND user_id = ? LIMIT 1";
-            $booking_stmt = $conn->prepare($booking_sql);
-            $booking_stmt->bind_param("ii", $booking_id, $user_id);
-            $booking_stmt->execute();
-            $booking_result = $booking_stmt->get_result();
-            $booking_row = $booking_result->fetch_assoc();
-            $booking_stmt->close();
-            if ($booking_row) {
-              // Fetch driver details
-              $driver_sql = "SELECT first_name, last_name FROM drivers WHERE id = ? LIMIT 1";
-              $driver_stmt = $conn->prepare($driver_sql);
-              $driver_stmt->bind_param("i", $booking_row['driver_id']);
-              $driver_stmt->execute();
-              $driver_result = $driver_stmt->get_result();
-              $driver = $driver_result->fetch_assoc();
-              $driver_stmt->close();
-          ?>
-          <div class="bg-gray-50 border rounded-lg p-4 mt-4 text-left max-w-xl mx-auto">
+          <div class="text-blue-900 text-xl font-mono font-bold mb-2"><?php echo htmlspecialchars($reference); ?></div>
+          <div class="text-gray-500 text-sm">Booking ID: <?php echo htmlspecialchars($booking_row['id']); ?></div>
+          <div id="receipt-area" class="bg-gray-50 border rounded-lg p-4 mt-4 text-left max-w-xl mx-auto">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="text-xl font-bold text-blue-900">ProDrivers</span>
+              </div>
+              <div class="text-right text-xs text-gray-500">
+                <div>Receipt #: <?php echo htmlspecialchars($reference); ?></div>
+                <div>Date: <?php echo date('M j, Y g:i A'); ?></div>
+              </div>
+            </div>
+            <div class="text-center text-2xl font-bold mb-2 text-gray-800">Receipt</div>
+            <div class="mb-4 text-sm text-gray-700">
+              <div><span class="font-medium">Customer:</span> <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></div>
+              <div><span class="font-medium">Email:</span> <?php echo htmlspecialchars($user['email']); ?></div>
+            </div>
             <div class="font-semibold text-gray-800 mb-2">Booking Summary</div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-gray-700 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-gray-700 text-sm mb-4">
               <div><span class="font-medium">Driver:</span> <?php echo htmlspecialchars($driver['first_name'] . ' ' . $driver['last_name']); ?></div>
               <div><span class="font-medium">Vehicle Type:</span> <?php echo htmlspecialchars($booking_row['vehicle_type']); ?></div>
               <div><span class="font-medium">Pickup:</span> <?php echo htmlspecialchars($booking_row['pickup_location']); ?></div>
@@ -144,15 +167,23 @@ $cacheBuster = file_exists($picPath) ? "?v=" . filemtime($picPath) : "";
                 <div class="col-span-2"><span class="font-medium">Notes:</span> <?php echo htmlspecialchars($booking_row['additional_notes']); ?></div>
               <?php endif; ?>
             </div>
+            <div class="border-t pt-3 mt-3 text-xs text-gray-500">
+              <div>ProDrivers | support@example.com | +234-800-000-0000</div>
+              <div>123 Main Street, Lagos, Nigeria</div>
+            </div>
+            <div class="text-center text-green-700 font-semibold mt-4">Thank you for booking with ProDrivers!</div>
           </div>
-          <?php } ?>
-          <?php endif; ?>
+          <div class="flex flex-col sm:flex-row gap-2 justify-center mt-4">
+            <button onclick="printReceipt()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded shadow flex items-center gap-2"><i class="fa fa-print"></i> Print Receipt</button>
+            <button onclick="downloadReceipt()" class="bg-green-700 hover:bg-green-800 text-white font-semibold py-2 px-4 rounded shadow flex items-center gap-2"><i class="fa fa-download"></i> Download Receipt</button>
+          </div>
           <div class="text-gray-600 text-sm mt-2">Please keep this reference for your records. If you need support, quote this reference.</div>
         </div>
-        <?php 
-          unset($_SESSION['last_booking_reference']);
-          unset($_SESSION['last_booking_id']);
-        ?>
+        <?php else: ?>
+        <div class="mb-4">
+          <div class="text-gray-700 text-lg font-semibold">Booking Reference Not Found</div>
+          <div class="text-gray-600 text-sm mt-2">We could not find a booking for the provided reference. If you believe this is an error, please contact support with your payment reference.</div>
+        </div>
         <?php endif; ?>
         <div class="mb-4">
           <span class="text-gray-700">Need help? Contact <a href="mailto:support@example.com" class="text-blue-700 underline">support@example.com</a></span>
@@ -186,6 +217,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+</script>
+<script>
+function printReceipt() {
+  var printContents = document.getElementById('receipt-area').outerHTML;
+  var originalContents = document.body.innerHTML;
+  document.body.innerHTML = printContents;
+  window.print();
+  document.body.innerHTML = originalContents;
+  location.reload(); // To restore event listeners and state
+}
+function downloadReceipt() {
+  printReceipt(); // Triggers browser's print-to-PDF dialog
+}
 </script>
 </body>
 </html> 

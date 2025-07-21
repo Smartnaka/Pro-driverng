@@ -81,7 +81,7 @@ if ('success' == $tranx->data->status) {
     if ($bookingService->isDuplicateBooking($booking['reference'])) {
         error_log("Duplicate booking attempt for reference: {$booking['reference']} by user_id: {$_SESSION['user_id']}");
         $_SESSION['payment_error'] = "This booking has already been processed. If you believe you have been charged but did not receive a booking confirmation, please contact our support team with your payment reference.";
-        header("Location: payment-success.php"); // Optionally, redirect to success or error page
+        header("Location: payment-success.php?reference=" . urlencode($booking['reference'])); // Always redirect with reference
         exit();
     }
     
@@ -144,12 +144,10 @@ if ('success' == $tranx->data->status) {
         include_once '../include/SecureMailer.php';
         $mailer = new SecureMailer();
         $mailer->sendBookingConfirmationEmail($user_email, $user_first_name);
-        // Store booking reference and ID in session for confirmation page
-        $_SESSION['last_booking_reference'] = $booking['reference'];
-        $_SESSION['last_booking_id'] = $createResult['booking_id'];
+        // Redirect to payment-success page with reference in URL
         unset($_SESSION['booking_details']);
         unset($_SESSION['pending_booking']);
-        header("Location: payment-success.php");
+        header("Location: payment-success.php?reference=" . urlencode($booking['reference']));
         exit();
     } else {
         error_log("Booking insert failed for reference {$booking['reference']}: " . $createResult['error']);
