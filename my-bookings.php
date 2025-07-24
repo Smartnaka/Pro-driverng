@@ -205,7 +205,7 @@ function getStatusDisplayText($status) {
     <p class="text-gray-600 mb-4">Are you sure you want to cancel this booking?</p>
     <div class="flex justify-end gap-2">
       <button id="cancelModalNo" class="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300">No</button>
-      <button id="cancelModalYes" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Yes, Cancel</button>
+      <button id="cancelModalYes" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 flex items-center gap-2"><span id="cancelModalYesText">Yes, Cancel</span><svg id="cancelModalSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg></button>
     </div>
   </div>
 </div>
@@ -229,11 +229,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 let cancelBookingId = null;
+let cancelling = false;
 function cancelBooking(bookingId) {
+  if (cancelling) return;
   cancelBookingId = bookingId;
   document.getElementById('cancelModal').classList.remove('hidden');
 }
 document.getElementById('cancelModalNo').onclick = function() {
+  if (cancelling) return;
   document.getElementById('cancelModal').classList.add('hidden');
   cancelBookingId = null;
 };
@@ -249,7 +252,11 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 document.getElementById('cancelModalYes').onclick = function() {
-  if (!cancelBookingId) return;
+  if (!cancelBookingId || cancelling) return;
+  cancelling = true;
+  document.getElementById('cancelModalYes').disabled = true;
+  document.getElementById('cancelModalNo').disabled = true;
+  document.getElementById('cancelModalSpinner').classList.remove('hidden');
   fetch('api/cancel_booking.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -257,6 +264,10 @@ document.getElementById('cancelModalYes').onclick = function() {
   })
   .then(response => response.json())
   .then(data => {
+    cancelling = false;
+    document.getElementById('cancelModalYes').disabled = false;
+    document.getElementById('cancelModalNo').disabled = false;
+    document.getElementById('cancelModalSpinner').classList.add('hidden');
     document.getElementById('cancelModal').classList.add('hidden');
     cancelBookingId = null;
     if (data.success) {
@@ -267,6 +278,10 @@ document.getElementById('cancelModalYes').onclick = function() {
     }
   })
   .catch(() => {
+    cancelling = false;
+    document.getElementById('cancelModalYes').disabled = false;
+    document.getElementById('cancelModalNo').disabled = false;
+    document.getElementById('cancelModalSpinner').classList.add('hidden');
     document.getElementById('cancelModal').classList.add('hidden');
     cancelBookingId = null;
     showToast('Network error. Please try again.', 'error');
