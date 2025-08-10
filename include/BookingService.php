@@ -58,52 +58,65 @@ class BookingService {
     }
 
     /**
-     * Create a new booking
+     * Create a new booking with transaction support
      */
     public function createBooking($booking, $user_id, $user_info) {
-        $sql = "INSERT INTO bookings (
-            user_id, driver_id, pickup_location, dropoff_location, pickup_date, pickup_time, duration_days, vehicle_type, trip_purpose, additional_notes, status, amount, reference, user_email, user_first_name, user_last_name, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?, ?, ?, ?, ?, NOW())";
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) {
-            return [
-                'success' => false,
-                'error' => $this->conn->error
-            ];
-        }
-        $additional_notes = isset($booking['additional_notes']) ? $booking['additional_notes'] : '';
-        $stmt->bind_param(
-            "iisssissssdssss",
-            $user_id,
-            $booking['driver_id'],
-            $booking['pickup_location'],
-            $booking['dropoff_location'],
-            $booking['pickup_date'],
-            $booking['pickup_time'],
-            $booking['duration_days'],
-            $booking['vehicle_type'],
-            $booking['trip_purpose'],
-            $additional_notes,
-            $booking['amount'],
-            $booking['reference'],
-            $user_info['email'],
-            $user_info['first_name'],
-            $user_info['last_name']
-        );
-        $result = $stmt->execute();
-        if ($result) {
+        // Start transaction
+        $this->conn->begin_transaction();
+        
+        try {
+            $sql = "INSERT INTO bookings (
+                user_id, driver_id, pickup_location, dropoff_location, pickup_date, pickup_time, duration_days, vehicle_type, trip_purpose, additional_notes, status, amount, reference, user_email, user_first_name, user_last_name, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?, ?, ?, ?, ?, NOW())";
+            $stmt = $this->conn->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Database error: " . $this->conn->error);
+            }
+            
+            $additional_notes = isset($booking['additional_notes']) ? $booking['additional_notes'] : '';
+            $stmt->bind_param(
+                "iisssissssdssss",
+                $user_id,
+                $booking['driver_id'],
+                $booking['pickup_location'],
+                $booking['dropoff_location'],
+                $booking['pickup_date'],
+                $booking['pickup_time'],
+                $booking['duration_days'],
+                $booking['vehicle_type'],
+                $booking['trip_purpose'],
+                $additional_notes,
+                $booking['amount'],
+                $booking['reference'],
+                $user_info['email'],
+                $user_info['first_name'],
+                $user_info['last_name']
+            );
+            
+            $result = $stmt->execute();
+            if (!$result) {
+                throw new Exception("Failed to insert booking: " . $stmt->error);
+            }
+            
             $booking_id = $stmt->insert_id ? $stmt->insert_id : $this->conn->insert_id;
             $stmt->close();
+            
+            // Commit transaction
+            $this->conn->commit();
+            
             return [
                 'success' => true,
                 'booking_id' => $booking_id
             ];
-        } else {
-            $error = $stmt->error;
-            $stmt->close();
+            
+        } catch (Exception $e) {
+            // Rollback transaction on error
+            $this->conn->rollback();
+            error_log("Booking creation failed with transaction rollback: " . $e->getMessage());
+            
             return [
                 'success' => false,
-                'error' => $error
+                'error' => $e->getMessage()
             ];
         }
     }

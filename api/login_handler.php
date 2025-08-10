@@ -1,8 +1,19 @@
 <?php
-session_start();
-include '../include/db.php';
+// Suppress all output and warnings until we're ready to send JSON
+error_reporting(E_ERROR | E_PARSE);
+ob_start();
 
-// Set header to return JSON
+// Start session if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Include database connection with proper path
+$db_path = file_exists('../include/db.php') ? '../include/db.php' : 'include/db.php';
+include $db_path;
+
+// Clear any unwanted output and set JSON header
+ob_clean();
 header('Content-Type: application/json');
 
 // Generate CSRF token if not exists

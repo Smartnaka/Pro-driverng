@@ -6,6 +6,11 @@ include 'include/db.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Generate CSRF token if not exists
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Debug information
 if (isset($_GET['debug'])) {
     echo "<pre>";
@@ -67,14 +72,44 @@ if (!$driver) {
 
 // Process booking form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_driver'])) {
-    $pickup_location = $_POST['pickup_location'];
-    $dropoff_location = $_POST['dropoff_location'];
-    $pickup_date = $_POST['pickup_date'];
-    $pickup_time = $_POST['pickup_time'];
-    $duration_days = $_POST['duration_days'];
-    $vehicle_type = $_POST['vehicle_type'];
-    $trip_purpose = $_POST['trip_purpose'];
-    $additional_notes = $_POST['additional_notes'];
+    // Validate CSRF token
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        die("CSRF token validation failed. Please try again.");
+    }
+    
+    // Validate and sanitize input
+    $pickup_location = filter_input(INPUT_POST, 'pickup_location', FILTER_SANITIZE_STRING);
+    $dropoff_location = filter_input(INPUT_POST, 'dropoff_location', FILTER_SANITIZE_STRING);
+    $pickup_date = filter_input(INPUT_POST, 'pickup_date', FILTER_SANITIZE_STRING);
+    $pickup_time = filter_input(INPUT_POST, 'pickup_time', FILTER_SANITIZE_STRING);
+    $duration_days = filter_input(INPUT_POST, 'duration_days', FILTER_VALIDATE_INT);
+    $vehicle_type = filter_input(INPUT_POST, 'vehicle_type', FILTER_SANITIZE_STRING);
+    $trip_purpose = filter_input(INPUT_POST, 'trip_purpose', FILTER_SANITIZE_STRING);
+    $additional_notes = filter_input(INPUT_POST, 'additional_notes', FILTER_SANITIZE_STRING);
+    
+    // Validate required fields
+    $errors = [];
+    if (empty($pickup_location)) $errors[] = "Pickup location is required";
+    if (empty($dropoff_location)) $errors[] = "Dropoff location is required";
+    if (empty($pickup_date)) $errors[] = "Pickup date is required";
+    if (empty($pickup_time)) $errors[] = "Pickup time is required";
+    if ($duration_days < 1 || $duration_days > 30) $errors[] = "Duration must be between 1 and 30 days";
+    if (empty($vehicle_type)) $errors[] = "Vehicle type is required";
+    if (empty($trip_purpose)) $errors[] = "Trip purpose is required";
+    
+    // Validate date is not in the past
+    if (strtotime($pickup_date) < strtotime(date('Y-m-d'))) {
+        $errors[] = "Pickup date cannot be in the past";
+    }
+    
+    if (!empty($errors)) {
+        $error_message = "Please correct the following errors: " . implode(", ", $errors);
+        // You can store this in session and display it on the form
+        $_SESSION['booking_error'] = $error_message;
+        // Redirect back to form
+        header("Location: booking.php?driver_id=" . $driver_id);
+        exit();
+    }
 
     // Calculate amount based on duration and vehicle type
     $base_rate = 5000; // Base rate per day
@@ -173,6 +208,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_driver'])) {
       </button>
     </header>
     <main class="flex-1 w-full max-w-3xl mx-auto px-4 py-8">
+      <!-- Error Message Display -->
+      <?php if (isset($_SESSION['booking_error'])): ?>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <?php echo htmlspecialchars($_SESSION['booking_error']); ?>
+        </div>
+        <?php unset($_SESSION['booking_error']); ?>
+      <?php endif; ?>
+      
       <!-- Selected Driver Card -->
       <div class="bg-white rounded-xl shadow p-6 mb-8 flex flex-col md:flex-row gap-6 items-center">
         <img src="<?= !empty($driver['profile_picture']) ? htmlspecialchars($driver['profile_picture']) : 'images/default-profile.png' ?>" class="w-28 h-32 rounded-xl object-cover border border-gray-200 bg-gray-100" alt="Driver Photo">
@@ -186,6 +229,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_driver'])) {
       <!-- Booking Form Card -->
       <div class="bg-white rounded-xl shadow p-8">
         <form method="POST" id="bookingForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- CSRF Token -->
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+          
           <div>
             <label for="pickup_location" class="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
             <input type="text" class="form-input w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" id="pickup_location" name="pickup_location" placeholder="Enter pickup location" required>

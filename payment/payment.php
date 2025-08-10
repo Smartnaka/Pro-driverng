@@ -1,6 +1,7 @@
 <?php
 session_start();
 include '../include/db.php';
+include '../config.php';
 
 // Enable error reporting
 error_reporting(E_ALL);
@@ -165,7 +166,7 @@ if (isset($_SESSION['pending_booking']) && !empty($_SESSION['pending_booking']))
     <script>
         function payWithPaystack() {
             const handler = PaystackPop.setup({
-                key: 'pk_test_9da1212b6c99a9b813dc323aa680e01bfcc8e52d', // Replace with your public key
+                key: '<?= defined('PAYSTACK_PUBLIC_KEY') ? PAYSTACK_PUBLIC_KEY : 'pk_test_9da1212b6c99a9b813dc323aa680e01bfcc8e52d' ?>', // Use environment variable with fallback
                 email: '<?= htmlspecialchars($user['email']) ?>',
                 amount: <?= $amount * 100 ?>, // Convert to kobo
                 currency: 'NGN',

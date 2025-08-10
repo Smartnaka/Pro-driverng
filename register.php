@@ -24,11 +24,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
         $phone = htmlspecialchars(trim($_POST['phone']));
         $password = $_POST['password'];
+        $confirm_password = $_POST['confirm_password'] ?? '';
 
+        // Validate passwords match
+        if ($password !== $confirm_password) {
+            $error_message = "Passwords do not match.";
+        } else if (strlen($password) < 8) {
+            $error_message = "Password must be at least 8 characters long.";
+        }
         // Validate email
-        if (!$email) {
+        if (!$email && empty($error_message)) {
             $error_message = "Invalid email format.";
-        } else {
+        } else if (empty($error_message)) {
             // Email uniqueness check
             $stmt = $conn->prepare("SELECT id FROM customers WHERE email = ?");
             if (!$stmt) {

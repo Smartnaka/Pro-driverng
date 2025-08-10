@@ -4,15 +4,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
  * Secure Mailer Class
  * Handles email sending with secure credential management
  */
-$envFile = __DIR__ . '/../.env';
-if (!file_exists($envFile)) {
-    die('DEBUG: .env file not found at: ' . $envFile);
-} else {
-    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    echo "<pre>DEBUG: .env file found. Contents:\n";
-    print_r($lines);
-    echo "</pre>";
-}
+// Include configuration file
+require_once __DIR__ . '/../config.php';
 
 class SecureMailer {
     private $mailer;
@@ -31,29 +24,18 @@ class SecureMailer {
      * Load environment variables from .env file
      */
     private function loadEnvironmentVariables() {
-        $envFile = __DIR__ . '/../.env';
+        $this->config = [
+            'SMTP_HOST' => MAIL_HOST,
+            'SMTP_USERNAME' => MAIL_USERNAME,
+            'SMTP_PASSWORD' => MAIL_PASSWORD,
+            'SMTP_PORT' => MAIL_PORT,
+            'SMTP_ENCRYPTION' => MAIL_ENCRYPTION
+        ];
         
-        if (!file_exists($envFile)) {
-            throw new Exception('.env file not found. Please create it with SMTP credentials.');
-        }
-        
-        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        $this->config = [];
-        
-        foreach ($lines as $line) {
-            if (strpos($line, '#') === 0) continue; // Skip comments
-            
-            $parts = explode('=', $line, 2);
-            if (count($parts) === 2) {
-                $this->config[trim($parts[0])] = trim($parts[1]);
-            }
-        }
-        
-        // Validate required configuration
-        $required = ['SMTP_HOST', 'SMTP_USERNAME', 'SMTP_PASSWORD', 'SMTP_PORT'];
-        foreach ($required as $key) {
-            if (!isset($this->config[$key])) {
-                throw new Exception("Missing required SMTP configuration: $key");
+        // Validate configuration
+        foreach ($this->config as $key => $value) {
+            if (empty($value)) {
+                throw new Exception("Missing required SMTP configuration: {$key}");
             }
         }
     }
@@ -95,13 +77,14 @@ class SecureMailer {
             return true;
             
         } catch (Exception $e) {
-            error_log("PHPMailer Error: " . $this->mailer->ErrorInfo);
+            error_log("PHPMailer Error sending welcome email to {$email}: " . $this->mailer->ErrorInfo);
+            error_log("Exception details: " . $e->getMessage());
             return false;
         }
     }
     
     /**
-     * Send driver welcome email
+     * Send welcome email to driver
      */
     public function sendDriverWelcomeEmail($email, $firstName) {
         try {
@@ -109,22 +92,23 @@ class SecureMailer {
             $this->mailer->addAddress($email, $firstName);
             
             $this->mailer->isHTML(true);
-            $this->mailer->Subject = '🎉 Driver Registration Successful - Welcome to Pro-Drivers!';
+            $this->mailer->Subject = '🚗 Welcome to Pro-Drivers Driver Network!';
             $this->mailer->Body = "
                 <h2>Hello {$firstName},</h2>
-                <p>Welcome to <strong>Pro-Drivers</strong>! Your registration as a driver was successful.</p>
-                <p>You can now log in and start using our platform.</p>
+                <p>Welcome to <strong>Pro-Drivers</strong>! Your driver account has been created successfully.</p>
+                <p>You can now log in and start receiving booking requests from customers.</p>
                 <br><hr>
-                <p style='font-size: 12px; color: #777;'>This email was sent to you because you signed up as a driver. If you didn't register, you can ignore this email.</p>
+                <p style='font-size: 12px; color: #777;'>This email was sent to you because you registered as a driver with Pro-Drivers. If you didn't register, you can ignore this email.</p>
             ";
-            $this->mailer->AltBody = "Hello {$firstName},\n\nWelcome to Pro-Drivers! Your registration was successful.";
+            $this->mailer->AltBody = "Hello {$firstName},\n\nWelcome to Pro-Drivers! Your driver account has been created successfully.";
             
             $this->mailer->send();
             error_log("Driver welcome email sent successfully to: " . $email);
             return true;
             
         } catch (Exception $e) {
-            error_log("PHPMailer Error: " . $this->mailer->ErrorInfo);
+            error_log("PHPMailer Error sending driver welcome email to {$email}: " . $this->mailer->ErrorInfo);
+            error_log("Exception details: " . $e->getMessage());
             return false;
         }
     }
@@ -135,19 +119,28 @@ class SecureMailer {
     public function sendPasswordResetEmail($email, $firstName, $resetUrl) {
         try {
             $this->mailer->setFrom($this->config['SMTP_USERNAME'], 'PRODRIVERS');
-            $this->mailer->addAddress($email);
+            $this->mailer->addAddress($email, $firstName);
             
             $this->mailer->isHTML(true);
-            $this->mailer->Subject = 'Reset your password';
-            $this->mailer->Body = "Hi {$firstName},<br>Click <a href='{$resetUrl}'>here</a> to reset your password. This link will expire in 1 hour.";
-            $this->mailer->AltBody = "Reset your password: {$resetUrl}";
+            $this->mailer->Subject = '🔐 Password Reset Request - Pro-Drivers';
+            $this->mailer->Body = "
+                <h2>Hello {$firstName},</h2>
+                <p>You have requested to reset your password for your Pro-Drivers account.</p>
+                <p>Click the link below to reset your password:</p>
+                <p><a href='{$resetUrl}' style='background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;'>Reset Password</a></p>
+                <p>If you didn't request this, you can safely ignore this email.</p>
+                <br><hr>
+                <p style='font-size: 12px; color: #777;'>This link will expire in 1 hour for security reasons.</p>
+            ";
+            $this->mailer->AltBody = "Hello {$firstName},\n\nYou have requested to reset your password. Click this link: {$resetUrl}";
             
             $this->mailer->send();
             error_log("Password reset email sent successfully to: " . $email);
             return true;
             
         } catch (Exception $e) {
-            error_log("PHPMailer Error: " . $this->mailer->ErrorInfo);
+            error_log("PHPMailer Error sending password reset email to {$email}: " . $this->mailer->ErrorInfo);
+            error_log("Exception details: " . $e->getMessage());
             return false;
         }
     }
@@ -158,37 +151,58 @@ class SecureMailer {
     public function sendContactFormEmail($name, $email, $message) {
         try {
             $this->mailer->setFrom($this->config['SMTP_USERNAME'], 'PRODRIVERS');
-            $this->mailer->addAddress($this->config['SMTP_USERNAME'], 'Emmanuel');
+            $this->mailer->addAddress($this->config['SMTP_USERNAME'], 'Pro-Drivers Support');
+            $this->mailer->addReplyTo($email, $name);
             
-            $this->mailer->Subject = "New Contact Form Submission";
-            $this->mailer->Body = "Name: {$name}\nEmail: {$email}\nMessage: {$message}";
+            $this->mailer->isHTML(true);
+            $this->mailer->Subject = '📧 New Contact Form Submission - Pro-Drivers';
+            $this->mailer->Body = "
+                <h2>New Contact Form Submission</h2>
+                <p><strong>Name:</strong> {$name}</p>
+                <p><strong>Email:</strong> {$email}</p>
+                <p><strong>Message:</strong></p>
+                <p>" . nl2br(htmlspecialchars($message)) . "</p>
+            ";
+            $this->mailer->AltBody = "New contact form submission from {$name} ({$email}):\n\n{$message}";
             
             $this->mailer->send();
             error_log("Contact form email sent successfully from: " . $email);
             return true;
             
         } catch (Exception $e) {
-            error_log("PHPMailer Error: " . $this->mailer->ErrorInfo);
+            error_log("PHPMailer Error sending contact form email from {$email}: " . $this->mailer->ErrorInfo);
+            error_log("Exception details: " . $e->getMessage());
             return false;
         }
     }
-
+    
     /**
-     * Send booking/payment confirmation email to user
+     * Send booking confirmation email
      */
     public function sendBookingConfirmationEmail($email, $firstName) {
         try {
             $this->mailer->setFrom($this->config['SMTP_USERNAME'], 'PRODRIVERS');
             $this->mailer->addAddress($email, $firstName);
+            
             $this->mailer->isHTML(true);
-            $this->mailer->Subject = '✅ Booking Confirmed - Payment Successful';
-            $this->mailer->Body = "<h2>Hello {$firstName},</h2><p>Your payment was successful and your driver booking is now confirmed!</p><p>Thank you for choosing <strong>Pro-Drivers</strong>. We will contact you soon with your driver details.</p><br><hr><p style='font-size: 12px; color: #777;'>This is an automated confirmation for your recent booking and payment on Pro-Drivers.</p>";
-            $this->mailer->AltBody = "Hello {$firstName},\n\nYour payment was successful and your driver booking is now confirmed! Thank you for choosing Pro-Drivers.";
+            $this->mailer->Subject = '✅ Booking Confirmed - Pro-Drivers';
+            $this->mailer->Body = "
+                <h2>Hello {$firstName},</h2>
+                <p>Your booking has been confirmed! 🎉</p>
+                <p>We have received your payment and your driver will be in touch with you shortly.</p>
+                <p>You can view your booking details in your dashboard.</p>
+                <br><hr>
+                <p style='font-size: 12px; color: #777;'>Thank you for choosing Pro-Drivers for your transportation needs.</p>
+            ";
+            $this->mailer->AltBody = "Hello {$firstName},\n\nYour booking has been confirmed! We have received your payment and your driver will be in touch with you shortly.";
+            
             $this->mailer->send();
             error_log("Booking confirmation email sent successfully to: " . $email);
             return true;
+            
         } catch (Exception $e) {
-            error_log("PHPMailer Error: " . $this->mailer->ErrorInfo);
+            error_log("PHPMailer Error sending booking confirmation email to {$email}: " . $this->mailer->ErrorInfo);
+            error_log("Exception details: " . $e->getMessage());
             return false;
         }
     }

@@ -11,21 +11,38 @@ use PHPMailer\PHPMailer\Exception;
 
 $error_message = '';
 
+// Generate CSRF token if not exists
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Verify CSRF token first
+    if (!isset($_POST['csrf_token']) || $_SESSION['csrf_token'] !== $_POST['csrf_token']) {
+        $error_message = "Invalid request, please try again.";
+    } else {
     // Sanitize inputs
     $first_name = htmlspecialchars(trim($_POST['first_name']));
     $last_name = htmlspecialchars(trim($_POST['last_name']));
     $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
     $phone = htmlspecialchars(trim($_POST['phone']));
     $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'] ?? '';
     $exp_years = htmlspecialchars(trim($_POST['exp_years']));
     $education = htmlspecialchars(trim($_POST['education']));
     $photo_path = ''; // Set after image upload
 
+    // Validate passwords match
+    if ($password !== $confirm_password) {
+        $error_message = "Passwords do not match.";
+    } else if (strlen($password) < 8) {
+        $error_message = "Password must be at least 8 characters long.";
+    }
+
     // Validate email
-    if (!$email) {
+    if (!$email && empty($error_message)) {
         $error_message = "Invalid email format.";
-    } else {
+    } else if (empty($error_message)) {
         // Email uniqueness check
         $stmt = $conn->prepare("SELECT id FROM drivers WHERE email = ?");
         if (!$stmt) {
@@ -74,8 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($error_message)) {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-                // Insert into database using profile_picture field
-                $stmt = $conn->prepare("INSERT INTO drivers (first_name, last_name, email, password, phone, exp_years, education, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                // Insert into database using photo_path field
+                $stmt = $conn->prepare("INSERT INTO drivers (first_name, last_name, email, password, phone, exp_years, education, photo_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 if (!$stmt) {
                     die("Database error: " . $conn->error);
                 }
@@ -104,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+    } // Close the CSRF token validation else block
 
     // Display any errors
     if (!empty($error_message)) {
@@ -330,6 +348,7 @@ if (isset($_SESSION['error_message'])) {
                 <h3 style="font-weight: 700; color: #003366; margin-bottom: 0.5rem;">Onboarding:</h3>
                 <div style="font-size: 1.1rem; color: #222; margin-bottom: 2rem; font-weight: 500;">Personal Information</div>
                 <form id="driverForm" method="post" enctype="multipart/form-data" style="width: 100%;">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="first_name" style="font-weight: 500; color: #003366;">First Name</label>
@@ -350,9 +369,18 @@ if (isset($_SESSION['error_message'])) {
                         <div class="col-md-6">
                             <label for="password" style="font-weight: 500; color: #003366;">Password</label>
                             <div style="position: relative;">
-                                <input type="password" id="password" name="password" class="form-control" required style="min-height: 38px; padding-right: 2.5rem;">
+                                <input type="password" id="password" name="password" class="form-control" required style="min-height: 38px; padding-right: 2.5rem;" minlength="8">
                                 <span id="togglePassword" style="position: absolute; top: 50%; right: 0.75rem; transform: translateY(-50%); cursor: pointer; color: #003366; font-size: 1.1rem;">
                                     <i class="fa fa-eye" id="eyeIcon1"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" style="font-weight: 500; color: #003366;">Confirm Password</label>
+                            <div style="position: relative;">
+                                <input type="password" id="confirm_password" name="confirm_password" class="form-control" required style="min-height: 38px; padding-right: 2.5rem;" minlength="8">
+                                <span id="toggleConfirmPassword" style="position: absolute; top: 50%; right: 0.75rem; transform: translateY(-50%); cursor: pointer; color: #003366; font-size: 1.1rem;">
+                                    <i class="fa fa-eye" id="eyeIcon2"></i>
                                 </span>
                             </div>
                         </div>

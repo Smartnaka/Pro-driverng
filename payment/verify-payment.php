@@ -2,6 +2,7 @@
 session_start();
 include '../include/db.php';
 include '../include/BookingService.php';
+include '../config.php'; // Include config to get environment variables
 
 // Enable error reporting
 error_reporting(E_ALL);
@@ -17,8 +18,8 @@ $reference = $_GET['reference'];
 
 $bookingService = new BookingService($conn);
 
-// Verify the transaction
-$paystackSecretKey = "sk_test_0ca80ae7e863b608623399886ceb90cd29951246"; // Replace with your secret key
+// Verify the transaction using environment variable
+$paystackSecretKey = defined('PAYSTACK_SECRET_KEY') ? PAYSTACK_SECRET_KEY : 'sk_test_0ca80ae7e863b608623399886ceb90cd29951246'; // Use environment variable with fallback
 $verifyResult = $bookingService->verifyPayment($reference, $paystackSecretKey);
 if (!$verifyResult['status']) {
     error_log("Paystack verification error for reference $reference: " . $verifyResult['error']);
@@ -99,51 +100,31 @@ if ('success' == $tranx->data->status) {
         $user_stmt->fetch();
         $user_stmt->close();
     }
-    // Prepare the SQL statement with proper error handling
-    $sql = "INSERT INTO bookings (
-        user_id, driver_id, pickup_location, dropoff_location, pickup_date, pickup_time, duration_days, vehicle_type, trip_purpose, additional_notes, status, amount, reference, user_email, user_first_name, user_last_name, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?, ?, ?, ?, ?, NOW())";
-    
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        error_log("Database error on booking insert for reference {$booking['reference']}: " . $conn->error);
-        $_SESSION['payment_error'] = "We encountered a technical issue while saving your booking. If you have been charged, please contact support with your payment reference.";
-        header("Location: payment-error.php");
-        exit();
-    }
-    
-    $additional_notes = isset($booking['additional_notes']) ? $booking['additional_notes'] : '';
-    
-    $stmt->bind_param(
-        "iisssissssdssss",
-        $_SESSION['user_id'],
-        $booking['driver_id'],
-        $booking['pickup_location'],
-        $booking['dropoff_location'],
-        $booking['pickup_date'],
-        $booking['pickup_time'],
-        $booking['duration_days'],
-        $booking['vehicle_type'],
-        $booking['trip_purpose'],
-        $additional_notes,
-        $booking['amount'],
-        $booking['reference'],
-        $user_email,
-        $user_first_name,
-        $user_last_name
-    );
     
     $user_info = [
         'email' => $user_email,
         'first_name' => $user_first_name,
         'last_name' => $user_last_name
     ];
+    
+    // Create booking with transaction support
     $createResult = $bookingService->createBooking($booking, $_SESSION['user_id'], $user_info);
     if ($createResult['success']) {
-        // Send notification email
-        include_once '../include/SecureMailer.php';
-        $mailer = new SecureMailer();
-        $mailer->sendBookingConfirmationEmail($user_email, $user_first_name);
+        // Send notification email with error handling
+        try {
+            include_once '../include/SecureMailer.php';
+            $mailer = new SecureMailer();
+            $emailResult = $mailer->sendBookingConfirmationEmail($user_email, $user_first_name);
+            
+            if (!$emailResult) {
+                error_log("Failed to send booking confirmation email to: $user_email for booking reference: {$booking['reference']}");
+                // Don't fail the booking if email fails, just log it
+            }
+        } catch (Exception $e) {
+            error_log("Exception sending booking confirmation email: " . $e->getMessage());
+            // Don't fail the booking if email fails, just log it
+        }
+        
         // Redirect to payment-success page with reference in URL
         unset($_SESSION['booking_details']);
         unset($_SESSION['pending_booking']);
